@@ -1,0 +1,6 @@
+spring:
+  application:
+    name: job_search_java25
+
+server:
+  port: 8089
