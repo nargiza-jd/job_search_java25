@@ -5,7 +5,7 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 @Data
-class Resume {
+public class Resume {
     private int id;
     private int applicantId;
     private String name;
