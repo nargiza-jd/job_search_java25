@@ -12,7 +12,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.stream.Collectors;
 
 @Service
 public class ResumeServiceImpl implements ResumeService {
@@ -32,7 +31,7 @@ public class ResumeServiceImpl implements ResumeService {
     @Override
     public Resume createResume(ResumeCreateDto dto) {
         Resume resume = new Resume();
-        resume.setId(fileUtil.getNextResumeId());
+        resume.setId(fileUtil.generateId(resumes));
         resume.setName(dto.getName());
         resume.setCategoryId(dto.getCategoryId());
         resume.setSalary(dto.getSalary());
@@ -40,7 +39,6 @@ public class ResumeServiceImpl implements ResumeService {
         resume.setCreatedDate(LocalDateTime.now());
         resume.setUpdateTime(LocalDateTime.now());
         resume.setActive(true);
-
         resumes.add(resume);
         fileUtil.saveResumes(resumes);
         return resume;
@@ -54,9 +52,7 @@ public class ResumeServiceImpl implements ResumeService {
             resume.setName(dto.getName());
             resume.setCategoryId(dto.getCategoryId());
             resume.setSalary(dto.getSalary());
-            resume.setActive(dto.isActive());
             resume.setUpdateTime(LocalDateTime.now());
-
             fileUtil.saveResumes(resumes);
             return Optional.of(resume);
         }
@@ -78,24 +74,23 @@ public class ResumeServiceImpl implements ResumeService {
     }
 
     @Override
-    public List<Resume> getResumesByCategoryId(int categoryId) {
-        return resumes.stream()
-                .filter(Resume::isActive)
-                .filter(r -> r.getCategoryId() == categoryId)
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    public List<Resume> getResumesByAuthorId(int applicantId) {
-        return resumes.stream()
-                .filter(r -> r.getApplicantId() == applicantId)
-                .collect(Collectors.toList());
-    }
-
-    @Override
     public Optional<Resume> getResumeById(int id) {
         return resumes.stream()
                 .filter(r -> r.getId() == id)
                 .findFirst();
+    }
+
+    @Override
+    public List<Resume> getResumesByCategory(int categoryId) {
+        return resumes.stream()
+                .filter(r -> r.getCategoryId() == categoryId)
+                .toList();
+    }
+
+    @Override
+    public List<Resume> getResumesByApplicantId(int applicantId) {
+        return resumes.stream()
+                .filter(r -> r.getApplicantId() == applicantId)
+                .toList();
     }
 }

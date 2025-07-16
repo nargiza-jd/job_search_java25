@@ -9,16 +9,10 @@ import java.util.Optional;
 
 public interface ResumeService {
     Resume createResume(ResumeCreateDto dto);
-
     Optional<Resume> updateResume(int id, ResumeUpdateDto dto);
-
     boolean deleteResume(int id);
-
     List<Resume> getAllResumes();
-
-    List<Resume> getResumesByCategoryId(int categoryId);
-
-    List<Resume> getResumesByAuthorId(int authorId);
-
     Optional<Resume> getResumeById(int id);
+    List<Resume> getResumesByCategory(int categoryId);
+    List<Resume> getResumesByApplicantId(int applicantId);
 }

@@ -31,12 +31,14 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Optional<User> getUserById(int id) {
-        return users.stream().filter(user -> user.getId() == id).findFirst();
+        return users.stream()
+                .filter(user -> user.getId() == id)
+                .findFirst();
     }
 
     @Override
     public User createUser(User user) {
-        user.setId(fileUtil.getNextUserId());
+        user.setId(fileUtil.generateId(users));
         users.add(user);
         fileUtil.saveUsers(users);
         return user;

@@ -43,7 +43,7 @@ public class VacancyServiceImpl implements VacancyService {
     @Override
     public Vacancy createVacancy(VacancyCreateDto vacancyDto) {
         Vacancy vacancy = new Vacancy();
-        vacancy.setId(fileUtil.getNextVacancyId());
+        vacancy.setId(fileUtil.generateId(vacancies));
         vacancy.setName(vacancyDto.getName());
         vacancy.setDescription(vacancyDto.getDescription());
         vacancy.setCategoryId(vacancyDto.getCategoryId());
