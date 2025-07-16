@@ -9,7 +9,4 @@ public class ResumeUpdateDto {
     private int categoryId;
     private double salary;
     private boolean isActive;
-    private List<ContactsInfoCreateUpdateDto> contacts;
-    private List<EducationInfoCreateUpdateDto> education;
-    private List<WorkExperienceInfoCreateUpdateDto> workExperience;
 }
