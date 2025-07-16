@@ -3,6 +3,7 @@ package kg.attractor.job_search_java25.controller;
 import kg.attractor.job_search_java25.model.User;
 import kg.attractor.job_search_java25.service.UserService;
 import kg.attractor.job_search_java25.util.FileUtil;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -12,17 +13,13 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 import java.util.Optional;
 
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
 
     private final UserService userService;
     private final FileUtil fileUtil;
-
-    public UserController(UserService userService, FileUtil fileUtil) {
-        this.userService = userService;
-        this.fileUtil = fileUtil;
-    }
 
     @GetMapping
     public List<User> getAllUsers() {
@@ -97,5 +94,10 @@ public class UserController {
         }
 
         return fileUtil.getFile(avatarFilename, "avatars", mediaType);
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<User>> searchApplicants(@RequestParam String query) {
+        return ResponseEntity.ok(userService.searchApplicants(query));
     }
 }

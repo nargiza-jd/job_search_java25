@@ -70,4 +70,14 @@ public class UserServiceImpl implements UserService {
         }
         return removed;
     }
+
+    @Override
+    public List<User> searchApplicants(String query) {
+        return users.stream()
+                .filter(user -> "APPLICANT".equalsIgnoreCase(user.getAccountType()))
+                .filter(user ->
+                        user.getName().toLowerCase().contains(query.toLowerCase()) ||
+                                user.getEmail().toLowerCase().contains(query.toLowerCase()))
+                .toList();
+    }
 }
