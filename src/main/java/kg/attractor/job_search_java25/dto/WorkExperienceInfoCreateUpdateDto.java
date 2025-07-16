@@ -1,11 +1,10 @@
-package kg.attractor.job_search_java25.model;
+package kg.attractor.job_search_java25.dto;
 
 import lombok.Data;
 
 @Data
-public class WorkExperienceInfo {
-    private int id;
-    private int resumeId;
+public class WorkExperienceInfoCreateUpdateDto {
+    private Integer id;
     private int years;
     private String companyName;
     private String position;
