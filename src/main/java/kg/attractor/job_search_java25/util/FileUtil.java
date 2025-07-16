@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import kg.attractor.job_search_java25.model.RespondedApplicant;
 import kg.attractor.job_search_java25.model.Resume;
 import kg.attractor.job_search_java25.model.User;
 import kg.attractor.job_search_java25.model.Vacancy;
@@ -126,5 +127,13 @@ public class FileUtil {
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Ошибка при чтении файла");
         }
+    }
+
+    public List<RespondedApplicant> loadRespondedApplicants() {
+        return loadList("responded_applicants.json", new TypeReference<>() {});
+    }
+
+    public void saveRespondedApplicants(List<RespondedApplicant> applicants) {
+        saveList("responded_applicants.json", applicants);
     }
 }
