@@ -1,10 +1,12 @@
 package kg.attractor.job_search_java25.util;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
+import kg.attractor.job_search_java25.model.Resume;
 import kg.attractor.job_search_java25.model.User;
-import kg.attractor.job_search_java25.model.Vacancy; // Импортируем модель Vacancy
+import kg.attractor.job_search_java25.model.Vacancy;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.ByteArrayResource;
@@ -172,5 +174,51 @@ public class FileUtil {
             log.error("Ошибка при чтении файла: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Ошибка сервера при получении файла");
         }
+    }
+
+    @SneakyThrows
+    public <T> List<T> loadList(String filename, TypeReference<List<T>> typeRef) {
+        File file = new File("data/" + filename);
+        if (!file.exists()) return Collections.emptyList();
+
+        try (Reader reader = new FileReader(file)) {
+            return new Gson().fromJson(reader, typeRef.getType());
+        }
+    }
+
+    @SneakyThrows
+    public <T> void saveList(String filename, List<T> list) {
+        File file = new File("data/" + filename);
+        try (Writer writer = new FileWriter(file)) {
+            new GsonBuilder().setPrettyPrinting().create().toJson(list, writer);
+        }
+    }
+
+    public int getNextId(String counterFileName) {
+        Path path = Path.of("data/" + counterFileName);
+        try {
+            if (!Files.exists(path)) {
+                Files.writeString(path, "1");
+                return 1;
+            }
+            int current = Integer.parseInt(Files.readString(path).trim());
+            int next = current + 1;
+            Files.writeString(path, String.valueOf(next));
+            return next;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public List<Resume> loadResumes() {
+        return loadList("resumes.json", new TypeReference<List<Resume>>() {});
+    }
+
+    public void saveResumes(List<Resume> resumes) {
+        saveList("resumes.json", resumes);
+    }
+
+    public int getNextResumeId() {
+        return getNextId("resume_id_counter.txt");
     }
 }

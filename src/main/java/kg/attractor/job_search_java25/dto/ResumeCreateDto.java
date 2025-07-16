@@ -8,6 +8,7 @@ public class ResumeCreateDto {
     private String name;
     private int categoryId;
     private double salary;
+    private int applicantId;
     private List<ContactsInfoCreateUpdateDto> contacts;
     private List<EducationInfoCreateUpdateDto> education;
     private List<WorkExperienceInfoCreateUpdateDto> workExperience;
