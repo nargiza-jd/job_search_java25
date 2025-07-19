@@ -1,5 +1,6 @@
 package kg.attractor.job_search_java25.dao;
 
+import kg.attractor.job_search_java25.dao.mappers.UserMapper;
 import kg.attractor.job_search_java25.model.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.support.DataAccessUtils;
@@ -119,6 +120,20 @@ public class UserDao {
                     user.setAccountType(rs.getString("account_type"));
                     return user;
                 }
+        );
+    }
+
+    public List<User> findByPhoneNumber(String phoneNumber) {
+        String sql = "SELECT * FROM users WHERE phone_number LIKE ?";
+        return jdbcTemplate.query(sql, new UserMapper(), "%" + phoneNumber + "%");
+    }
+
+    public Optional<User> findByEmail(String email) {
+        String sql = "SELECT * FROM users WHERE email = ?";
+        return Optional.ofNullable(
+                DataAccessUtils.singleResult(
+                        jdbcTemplate.query(sql, new UserMapper(), email)
+                )
         );
     }
 }

@@ -16,4 +16,7 @@ public interface UserService {
     boolean deleteUser(int id);
 
     List<User> searchApplicants(String query);
+
+    List<User> findByPhoneNumber(String phoneNumber);
+    Optional<User> findByEmail(String email);
 }

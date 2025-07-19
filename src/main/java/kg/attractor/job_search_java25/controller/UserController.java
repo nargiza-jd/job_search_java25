@@ -100,4 +100,16 @@ public class UserController {
     public ResponseEntity<List<User>> searchApplicants(@RequestParam String query) {
         return ResponseEntity.ok(userService.searchApplicants(query));
     }
+
+    @GetMapping("/search/phone")
+    public List<User> searchByPhone(@RequestParam String phone) {
+        return userService.findByPhoneNumber(phone);
+    }
+
+    @GetMapping("/search/email")
+    public ResponseEntity<User> searchByEmail(@RequestParam String email) {
+        return userService.findByEmail(email)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
 }

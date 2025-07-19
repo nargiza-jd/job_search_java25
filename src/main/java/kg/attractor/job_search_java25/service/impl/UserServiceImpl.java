@@ -54,4 +54,14 @@ public class UserServiceImpl implements UserService {
     public List<User> searchApplicants(String query) {
         return userDao.searchApplicants(query);
     }
+
+    @Override
+    public List<User> findByPhoneNumber(String phoneNumber) {
+        return userDao.findByPhoneNumber(phoneNumber);
+    }
+
+    @Override
+    public Optional<User> findByEmail(String email) {
+        return userDao.findByEmail(email);
+    }
 }
