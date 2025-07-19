@@ -1,4 +1,4 @@
-package kg.attractor.dao;
+package kg.attractor.job_search_java25.dao;
 
 import kg.attractor.job_search_java25.model.User;
 import lombok.RequiredArgsConstructor;
