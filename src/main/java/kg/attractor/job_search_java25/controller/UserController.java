@@ -116,4 +116,9 @@ public class UserController {
             return ResponseEntity.notFound().build();
         }
     }
+
+    @GetMapping("/users/search/by-name")
+    public ResponseEntity<List<User>> searchByName(@RequestParam String name) {
+        return ResponseEntity.ok(userService.findByName(name));
+    }
 }

@@ -5,6 +5,8 @@ import kg.attractor.job_search_java25.exceptions.UserNotFoundException;
 import kg.attractor.job_search_java25.model.User;
 import kg.attractor.job_search_java25.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -14,6 +16,7 @@ import java.util.List;
 public class UserServiceImpl implements UserService {
 
     private final UserDao userDao;
+    private final JdbcTemplate jdbcTemplate;
 
     @Override
     public List<User> getAllUsers() {
@@ -39,6 +42,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public User updateUser(int id, User updatedUser) {
         getUserById(id);
+
         updatedUser.setId(id);
         userDao.updateUser(id, updatedUser);
         return updatedUser;
@@ -63,5 +67,27 @@ public class UserServiceImpl implements UserService {
     public User findByEmail(String email) {
         return userDao.findByEmail(email)
                 .orElseThrow(() -> new UserNotFoundException("Пользователь с email '" + email + "' не найден"));
+    }
+
+    @Override
+    public List<User> findByName(String name) {
+        String sql = "SELECT * FROM users WHERE LOWER(name) LIKE LOWER(?)";
+        return jdbcTemplate.query(sql, new Object[]{"%" + name + "%"}, userRowMapper());
+    }
+
+    private RowMapper<User> userRowMapper() {
+        return (rs, rowNum) -> {
+            User user = new User();
+            user.setId(rs.getInt("id"));
+            user.setName(rs.getString("name"));
+            user.setSurname(rs.getString("surname"));
+            user.setAge(rs.getInt("age"));
+            user.setEmail(rs.getString("email"));
+            user.setPassword(rs.getString("password"));
+            user.setPhoneNumber(rs.getString("phone_number"));
+            user.setAvatar(rs.getString("avatar"));
+            user.setAccountType(rs.getString("account_type"));
+            return user;
+        };
     }
 }
