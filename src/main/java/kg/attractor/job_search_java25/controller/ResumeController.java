@@ -24,7 +24,7 @@ public class ResumeController {
 
     @GetMapping("/category/{categoryId}")
     public ResponseEntity<List<Resume>> getByCategory(@PathVariable int categoryId) {
-        return ResponseEntity.ok(resumeService.getResumesByCategory(categoryId));
+        return ResponseEntity.ok(resumeService.findByCategory(categoryId));
     }
 
     @GetMapping("/author/{applicantId}")

@@ -51,4 +51,9 @@ public class ResumeServiceImpl implements ResumeService {
     public List<Resume> getResumesByApplicantId(int applicantId) {
         return resumeDao.getByApplicantId(applicantId);
     }
+
+    @Override
+    public List<Resume> findByCategory(int categoryId) {
+        return resumeDao.getByCategory(categoryId);
+    }
 }
