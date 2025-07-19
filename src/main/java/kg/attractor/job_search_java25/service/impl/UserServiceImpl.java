@@ -1,21 +1,19 @@
 package kg.attractor.job_search_java25.service.impl;
 
 import kg.attractor.job_search_java25.dao.UserDao;
+import kg.attractor.job_search_java25.exceptions.UserNotFoundException;
 import kg.attractor.job_search_java25.model.User;
 import kg.attractor.job_search_java25.service.UserService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
     private final UserDao userDao;
-
-    public UserServiceImpl(UserDao userDao) {
-        this.userDao = userDao;
-    }
 
     @Override
     public List<User> getAllUsers() {
@@ -23,26 +21,27 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Optional<User> getUserById(int id) {
-        return userDao.getUserById(id);
+    public User getUserById(int id) {
+        return userDao.getUserById(id)
+                .orElseThrow(() -> new UserNotFoundException("Пользователь с ID " + id + " не найден"));
     }
 
     @Override
     public User createUser(User user) {
-        int id = userDao.addUser(user);
-        user.setId(id);
-        return user;
+        userDao.findByEmail(user.getEmail()).ifPresent(existing -> {
+            throw new IllegalArgumentException("Email '" + user.getEmail() + "' уже существует");
+        });
+
+        int newUserId = userDao.addUser(user);
+        return getUserById(newUserId);
     }
 
     @Override
-    public Optional<User> updateUser(int id, User updatedUser) {
-        Optional<User> existingUserOpt = userDao.getUserById(id);
-        if (existingUserOpt.isPresent()) {
-            userDao.updateUser(id, updatedUser);
-            updatedUser.setId(id);
-            return Optional.of(updatedUser);
-        }
-        return Optional.empty();
+    public User updateUser(int id, User updatedUser) {
+        getUserById(id);
+        updatedUser.setId(id);
+        userDao.updateUser(id, updatedUser);
+        return updatedUser;
     }
 
     @Override
@@ -61,7 +60,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Optional<User> findByEmail(String email) {
-        return userDao.findByEmail(email);
+    public User findByEmail(String email) {
+        return userDao.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("Пользователь с email '" + email + "' не найден"));
     }
 }

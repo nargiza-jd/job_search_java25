@@ -1,96 +1,54 @@
 package kg.attractor.job_search_java25.service.impl;
 
+import kg.attractor.job_search_java25.dao.ResumeDao;
 import kg.attractor.job_search_java25.dto.ResumeCreateDto;
 import kg.attractor.job_search_java25.dto.ResumeUpdateDto;
 import kg.attractor.job_search_java25.model.Resume;
 import kg.attractor.job_search_java25.service.ResumeService;
-import kg.attractor.job_search_java25.util.FileUtil;
-import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 @Service
+@RequiredArgsConstructor
 public class ResumeServiceImpl implements ResumeService {
 
-    private final FileUtil fileUtil;
-    private List<Resume> resumes;
-
-    public ResumeServiceImpl(FileUtil fileUtil) {
-        this.fileUtil = fileUtil;
-    }
-
-    @PostConstruct
-    public void init() {
-        resumes = new CopyOnWriteArrayList<>(fileUtil.loadResumes());
-    }
+    private final ResumeDao resumeDao;
 
     @Override
     public Resume createResume(ResumeCreateDto dto) {
-        Resume resume = new Resume();
-        resume.setId(fileUtil.generateId(resumes));
-        resume.setName(dto.getName());
-        resume.setCategoryId(dto.getCategoryId());
-        resume.setSalary(dto.getSalary());
-        resume.setApplicantId(dto.getApplicantId());
-        resume.setCreatedDate(LocalDateTime.now());
-        resume.setUpdateTime(LocalDateTime.now());
-        resume.setActive(true);
-        resumes.add(resume);
-        fileUtil.saveResumes(resumes);
-        return resume;
+        throw new UnsupportedOperationException("Удаление резюме пока не реализовано");
     }
 
     @Override
     public Optional<Resume> updateResume(int id, ResumeUpdateDto dto) {
-        Optional<Resume> existing = getResumeById(id);
-        if (existing.isPresent()) {
-            Resume resume = existing.get();
-            resume.setName(dto.getName());
-            resume.setCategoryId(dto.getCategoryId());
-            resume.setSalary(dto.getSalary());
-            resume.setUpdateTime(LocalDateTime.now());
-            fileUtil.saveResumes(resumes);
-            return Optional.of(resume);
-        }
-        return Optional.empty();
+        throw new UnsupportedOperationException("Удаление резюме пока не реализовано");
     }
 
     @Override
     public boolean deleteResume(int id) {
-        boolean removed = resumes.removeIf(r -> r.getId() == id);
-        if (removed) {
-            fileUtil.saveResumes(resumes);
-        }
-        return removed;
+        throw new UnsupportedOperationException("Удаление резюме пока не реализовано");
     }
 
     @Override
     public List<Resume> getAllResumes() {
-        return resumes;
+        return resumeDao.getAll();
     }
 
     @Override
     public Optional<Resume> getResumeById(int id) {
-        return resumes.stream()
-                .filter(r -> r.getId() == id)
-                .findFirst();
+        return resumeDao.getById(id);
     }
 
     @Override
     public List<Resume> getResumesByCategory(int categoryId) {
-        return resumes.stream()
-                .filter(r -> r.getCategoryId() == categoryId)
-                .toList();
+        return resumeDao.getByCategory(categoryId);
     }
 
     @Override
     public List<Resume> getResumesByApplicantId(int applicantId) {
-        return resumes.stream()
-                .filter(r -> r.getApplicantId() == applicantId)
-                .toList();
+        return resumeDao.getByApplicantId(applicantId);
     }
 }
