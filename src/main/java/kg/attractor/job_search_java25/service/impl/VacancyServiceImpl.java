@@ -1,49 +1,40 @@
 package kg.attractor.job_search_java25.service.impl;
 
+import kg.attractor.job_search_java25.dao.VacancyDao;
 import kg.attractor.job_search_java25.dto.VacancyCreateDto;
 import kg.attractor.job_search_java25.dto.VacancyUpdateDto;
 import kg.attractor.job_search_java25.model.Vacancy;
 import kg.attractor.job_search_java25.service.VacancyService;
-import kg.attractor.job_search_java25.util.FileUtil;
-import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class VacancyServiceImpl implements VacancyService {
-    private final FileUtil fileUtil;
-    private List<Vacancy> vacancies;
 
-    public VacancyServiceImpl(FileUtil fileUtil) {
-        this.fileUtil = fileUtil;
-    }
-
-    @PostConstruct
-    public void init() {
-        vacancies = new CopyOnWriteArrayList<>(fileUtil.loadVacancies());
-    }
+    private final VacancyDao vacancyDao;
 
     @Override
     public List<Vacancy> getAllActiveVacancies() {
-        return vacancies.stream()
-                .filter(Vacancy::isActive)
-                .collect(Collectors.toList());
+        return vacancyDao.getAllActive();
     }
 
     @Override
     public Optional<Vacancy> getVacancyById(int id) {
-        return vacancies.stream().filter(vacancy -> vacancy.getId() == id).findFirst();
+        try {
+            return Optional.ofNullable(vacancyDao.getById(id));
+        } catch (Exception e) {
+            return Optional.empty();
+        }
     }
 
     @Override
     public Vacancy createVacancy(VacancyCreateDto vacancyDto) {
         Vacancy vacancy = new Vacancy();
-        vacancy.setId(fileUtil.generateId(vacancies));
         vacancy.setName(vacancyDto.getName());
         vacancy.setDescription(vacancyDto.getDescription());
         vacancy.setCategoryId(vacancyDto.getCategoryId());
@@ -51,70 +42,63 @@ public class VacancyServiceImpl implements VacancyService {
         vacancy.setExpFrom(vacancyDto.getExpFrom());
         vacancy.setExpTo(vacancyDto.getExpTo());
         vacancy.setAuthorId(vacancyDto.getAuthorId());
-
+        vacancy.setActive(true);
         vacancy.setCreatedDate(LocalDateTime.now());
         vacancy.setUpdateTime(LocalDateTime.now());
-        vacancy.setActive(true);
 
-        vacancies.add(vacancy);
-        fileUtil.saveVacancies(vacancies);
+        vacancyDao.save(vacancy);
         return vacancy;
     }
 
     @Override
     public Optional<Vacancy> updateVacancy(int id, VacancyUpdateDto updatedVacancyDto) {
-        Optional<Vacancy> existingVacancyOpt = getVacancyById(id);
-        if (existingVacancyOpt.isPresent()) {
-            Vacancy existingVacancy = existingVacancyOpt.get();
-            existingVacancy.setName(updatedVacancyDto.getName());
-            existingVacancy.setSalary(updatedVacancyDto.getSalary());
-            existingVacancy.setDescription(updatedVacancyDto.getDescription());
-            existingVacancy.setExpFrom(updatedVacancyDto.getExpFrom());
-            existingVacancy.setExpTo(updatedVacancyDto.getExpTo());
-            existingVacancy.setCategoryId(updatedVacancyDto.getCategoryId());
-            existingVacancy.setUpdateTime(LocalDateTime.now());
-            existingVacancy.setActive(updatedVacancyDto.isActive());
+        Optional<Vacancy> optional = getVacancyById(id);
+        if (optional.isEmpty()) return Optional.empty();
 
-            fileUtil.saveVacancies(vacancies);
-            return Optional.of(existingVacancy);
-        }
-        return Optional.empty();
+        Vacancy vacancy = optional.get();
+        vacancy.setName(updatedVacancyDto.getName());
+        vacancy.setDescription(updatedVacancyDto.getDescription());
+        vacancy.setSalary(updatedVacancyDto.getSalary());
+        vacancy.setExpFrom(updatedVacancyDto.getExpFrom());
+        vacancy.setExpTo(updatedVacancyDto.getExpTo());
+        vacancy.setCategoryId(updatedVacancyDto.getCategoryId());
+        vacancy.setActive(updatedVacancyDto.isActive());
+        vacancy.setUpdateTime(LocalDateTime.now());
+
+        vacancyDao.update(vacancy);
+        return Optional.of(vacancy);
     }
 
     @Override
     public boolean deleteVacancy(int id) {
-        boolean removed = vacancies.removeIf(vacancy -> vacancy.getId() == id);
-        if (removed) {
-            fileUtil.saveVacancies(vacancies);
-        }
-        return removed;
+        vacancyDao.delete(id);
+        return true;
     }
 
     @Override
     public List<Vacancy> getVacanciesByCategoryId(int categoryId) {
-        return vacancies.stream()
-                .filter(Vacancy::isActive)
-                .filter(vacancy -> vacancy.getCategoryId() == categoryId)
-                .collect(Collectors.toList());
+        return vacancyDao.getByCategoryId(categoryId);
     }
 
     @Override
     public List<Vacancy> getVacanciesByAuthorId(int authorId) {
-        return vacancies.stream()
-                .filter(vacancy -> vacancy.getAuthorId() == authorId)
-                .collect(Collectors.toList());
+        return vacancyDao.getByAuthorId(authorId);
     }
 
     @Override
     public Optional<Vacancy> toggleVacancyActiveStatus(int id, boolean isActive) {
-        Optional<Vacancy> existingVacancyOpt = getVacancyById(id);
-        if (existingVacancyOpt.isPresent()) {
-            Vacancy existingVacancy = existingVacancyOpt.get();
-            existingVacancy.setActive(isActive);
-            existingVacancy.setUpdateTime(LocalDateTime.now());
-            fileUtil.saveVacancies(vacancies);
-            return Optional.of(existingVacancy);
-        }
-        return Optional.empty();
+        Optional<Vacancy> optional = getVacancyById(id);
+        if (optional.isEmpty()) return Optional.empty();
+
+        vacancyDao.toggleStatus(id, isActive);
+        Vacancy vacancy = optional.get();
+        vacancy.setActive(isActive);
+        vacancy.setUpdateTime(LocalDateTime.now());
+        return Optional.of(vacancy);
+    }
+
+    @Override
+    public List<Vacancy> getVacanciesByIds(List<Integer> ids) {
+        return vacancyDao.getByIds(ids);
     }
 }

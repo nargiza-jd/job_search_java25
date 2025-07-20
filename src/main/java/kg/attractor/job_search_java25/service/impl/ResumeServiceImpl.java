@@ -8,6 +8,7 @@ import kg.attractor.job_search_java25.service.ResumeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -19,17 +20,38 @@ public class ResumeServiceImpl implements ResumeService {
 
     @Override
     public Resume createResume(ResumeCreateDto dto) {
-        throw new UnsupportedOperationException("Удаление резюме пока не реализовано");
+        Resume resume = new Resume();
+        resume.setName(dto.getName());
+        resume.setCategoryId(dto.getCategoryId());
+        resume.setSalary(dto.getSalary());
+        resume.setApplicantId(dto.getApplicantId());
+        resume.setActive(true);
+        resume.setCreatedDate(LocalDateTime.now());
+        resume.setUpdateTime(LocalDateTime.now());
+
+        return resumeDao.save(resume);
     }
 
     @Override
     public Optional<Resume> updateResume(int id, ResumeUpdateDto dto) {
-        throw new UnsupportedOperationException("Удаление резюме пока не реализовано");
+        Optional<Resume> optional = resumeDao.getById(id);
+        if (optional.isEmpty()) {
+            return Optional.empty();
+        }
+
+        Resume resume = optional.get();
+        resume.setName(dto.getName());
+        resume.setCategoryId(dto.getCategoryId());
+        resume.setSalary(dto.getSalary());
+        resume.setActive(dto.isActive());
+
+        resumeDao.update(id, resume);
+        return resumeDao.getById(id);
     }
 
     @Override
     public boolean deleteResume(int id) {
-        throw new UnsupportedOperationException("Удаление резюме пока не реализовано");
+        return resumeDao.delete(id);
     }
 
     @Override

@@ -75,3 +75,13 @@ VALUES
 
 INSERT INTO responded_applicants (resume_id, vacancy_id, confirmation)
 VALUES (1, 1, true);
+
+ALTER TABLE responded_applicants
+    ADD COLUMN applicant_id INTEGER;
+
+UPDATE responded_applicants ra
+SET applicant_id = (
+    SELECT r.applicant_id
+    FROM resumes r
+    WHERE r.id = ra.resume_id
+    );

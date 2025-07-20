@@ -7,5 +7,6 @@ public class RespondedApplicant {
     private int id;
     private int resumeId;
     private int vacancyId;
+    private int applicantId;
     private boolean confirmation;
 }

@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Optional;
 
 @RequiredArgsConstructor
 @RestController
@@ -22,8 +23,8 @@ public class UserController {
     private final FileUtil fileUtil;
 
     @GetMapping
-    public List<User> getAllUsers() {
-        return userService.getAllUsers();
+    public ResponseEntity<List<User>> getAllUsers() {
+        return ResponseEntity.ok(userService.getAllUsers());
     }
 
     @GetMapping("/{id}")
@@ -54,9 +55,9 @@ public class UserController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable int id) {
         if (userService.deleteUser(id)) {
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            return ResponseEntity.noContent().build();
         } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            return ResponseEntity.notFound().build();
         }
     }
 
@@ -67,9 +68,9 @@ public class UserController {
             String filename = fileUtil.saveFile(file, "avatars");
             user.setAvatar(filename);
             userService.updateUser(userId, user);
-            return new ResponseEntity<>("Аватар успешно загружен: " + filename, HttpStatus.OK);
+            return ResponseEntity.ok("Аватар успешно загружен: " + filename);
         } catch (UserNotFoundException e) {
-            return new ResponseEntity<>("Пользователь не найден", HttpStatus.NOT_FOUND);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Пользователь не найден");
         }
     }
 
@@ -80,7 +81,7 @@ public class UserController {
             String avatarFilename = user.getAvatar();
 
             if (avatarFilename == null || avatarFilename.isEmpty()) {
-                return new ResponseEntity<>("Аватар не установлен для этого пользователя", HttpStatus.NO_CONTENT);
+                return ResponseEntity.status(HttpStatus.NO_CONTENT).body("Аватар не установлен для этого пользователя");
             }
 
             MediaType mediaType = MediaType.APPLICATION_OCTET_STREAM;
@@ -94,7 +95,7 @@ public class UserController {
 
             return fileUtil.getFile(avatarFilename, "avatars", mediaType);
         } catch (UserNotFoundException e) {
-            return new ResponseEntity<>("Пользователь не найден", HttpStatus.NOT_FOUND);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Пользователь не найден");
         }
     }
 
@@ -104,20 +105,18 @@ public class UserController {
     }
 
     @GetMapping("/search/phone")
-    public List<User> searchByPhone(@RequestParam String phone) {
-        return userService.findByPhoneNumber(phone);
+    public ResponseEntity<List<User>> searchByPhone(@RequestParam String phone) {
+        return ResponseEntity.ok(userService.findByPhoneNumber(phone));
     }
 
     @GetMapping("/search/email")
     public ResponseEntity<User> searchByEmail(@RequestParam String email) {
-        try {
-            return ResponseEntity.ok(userService.findByEmail(email));
-        } catch (UserNotFoundException e) {
-            return ResponseEntity.notFound().build();
-        }
+        Optional<User> user = Optional.ofNullable(userService.findByEmail(email));
+        return user.map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @GetMapping("/users/search/by-name")
+    @GetMapping("/search/name")
     public ResponseEntity<List<User>> searchByName(@RequestParam String name) {
         return ResponseEntity.ok(userService.findByName(name));
     }

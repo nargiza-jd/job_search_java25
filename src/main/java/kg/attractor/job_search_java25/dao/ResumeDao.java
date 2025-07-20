@@ -43,4 +43,43 @@ public class ResumeDao {
         String sql = "SELECT * FROM resumes WHERE LOWER(name) LIKE LOWER(?)";
         return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(Resume.class), "%" + name + "%");
     }
+
+    public Resume save(Resume resume) {
+        String sql = "INSERT INTO resumes (name, category_id, salary, applicant_id, is_active, created_date, update_time) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?)";
+
+        jdbcTemplate.update(sql,
+                resume.getName(),
+                resume.getCategoryId(),
+                resume.getSalary(),
+                resume.getApplicantId(),
+                resume.isActive(),
+                resume.getCreatedDate(),
+                resume.getUpdateTime()
+        );
+
+        Integer id = jdbcTemplate.queryForObject("SELECT MAX(id) FROM resumes", Integer.class);
+        resume.setId(id);
+        return resume;
+    }
+
+    public void update(int id, Resume resume) {
+        String sql = """
+        UPDATE resumes
+        SET name = ?, category_id = ?, salary = ?, is_active = ?
+        WHERE id = ?
+        """;
+        jdbcTemplate.update(sql,
+                resume.getName(),
+                resume.getCategoryId(),
+                resume.getSalary(),
+                resume.isActive(),
+                id
+        );
+    }
+
+    public boolean delete(int id) {
+        String sql = "DELETE FROM resumes WHERE id = ?";
+        return jdbcTemplate.update(sql, id) > 0;
+    }
 }
