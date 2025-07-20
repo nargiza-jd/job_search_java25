@@ -69,12 +69,6 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new UserNotFoundException("Пользователь с email '" + email + "' не найден"));
     }
 
-    @Override
-    public List<User> findByName(String name) {
-        String sql = "SELECT * FROM users WHERE LOWER(name) LIKE LOWER(?)";
-        return jdbcTemplate.query(sql, new Object[]{"%" + name + "%"}, userRowMapper());
-    }
-
     private RowMapper<User> userRowMapper() {
         return (rs, rowNum) -> {
             User user = new User();
@@ -89,5 +83,10 @@ public class UserServiceImpl implements UserService {
             user.setAccountType(rs.getString("account_type"));
             return user;
         };
+    }
+
+    @Override
+    public List<User> findByName(String name) {
+        return userDao.findByName(name);
     }
 }

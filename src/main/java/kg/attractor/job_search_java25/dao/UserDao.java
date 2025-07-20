@@ -136,4 +136,9 @@ public class UserDao {
                 )
         );
     }
+
+    public List<User> findByName(String name) {
+        String sql = "SELECT * FROM users WHERE LOWER(name) LIKE ?";
+        return jdbcTemplate.query(sql, new UserMapper(), "%" + name.toLowerCase() + "%");
+    }
 }
