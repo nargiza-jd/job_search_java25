@@ -15,4 +15,6 @@ public interface VacancyService {
     List<Vacancy> getVacanciesByCategoryId(int categoryId);
     List<Vacancy> getVacanciesByAuthorId(int authorId);
     Optional<Vacancy> toggleVacancyActiveStatus(int id, boolean isActive);
+
+    List<Vacancy> getVacanciesByIds(List<Integer> ids);
 }

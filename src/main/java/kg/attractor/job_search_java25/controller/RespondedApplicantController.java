@@ -1,6 +1,8 @@
 package kg.attractor.job_search_java25.controller;
 
 import kg.attractor.job_search_java25.model.RespondedApplicant;
+import kg.attractor.job_search_java25.model.User;
+import kg.attractor.job_search_java25.model.Vacancy;
 import kg.attractor.job_search_java25.service.RespondedApplicantService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -19,7 +21,7 @@ public class RespondedApplicantController {
     public ResponseEntity<RespondedApplicant> respond(
             @RequestParam int resumeId,
             @RequestParam int vacancyId) {
-        return ResponseEntity.ok(service.createResponse(resumeId, vacancyId));
+        return ResponseEntity.status(201).body(service.createResponse(resumeId, vacancyId));
     }
 
     @GetMapping
@@ -35,5 +37,16 @@ public class RespondedApplicantController {
     @GetMapping("/resume/{resumeId}")
     public ResponseEntity<List<RespondedApplicant>> getByResume(@PathVariable int resumeId) {
         return ResponseEntity.ok(service.getByResumeId(resumeId));
+    }
+
+    @GetMapping("/applicant/{applicantId}/vacancies")
+    public ResponseEntity<List<Vacancy>> getVacanciesRespondedByApplicant(@PathVariable int applicantId) {
+        List<Integer> vacancyIds = service.getVacancyIdsByApplicantId(applicantId);
+        return ResponseEntity.ok(service.getVacanciesByIds(vacancyIds));
+    }
+
+    @GetMapping("/vacancy/{vacancyId}/applicants")
+    public ResponseEntity<List<User>> getApplicantsByVacancy(@PathVariable int vacancyId) {
+        return ResponseEntity.ok(service.getApplicantsByVacancyId(vacancyId));
     }
 }

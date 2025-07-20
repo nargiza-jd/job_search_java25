@@ -15,4 +15,7 @@ public interface ResumeService {
     Optional<Resume> getResumeById(int id);
     List<Resume> getResumesByCategory(int categoryId);
     List<Resume> getResumesByApplicantId(int applicantId);
+
+    List<Resume> findByCategory(int categoryId);
+    List<Resume> searchByName(String name);
 }

@@ -3,6 +3,7 @@ package kg.attractor.job_search_java25.controller;
 import kg.attractor.job_search_java25.dto.VacancyCreateDto;
 import kg.attractor.job_search_java25.dto.VacancyUpdateDto;
 import kg.attractor.job_search_java25.model.Vacancy;
+import kg.attractor.job_search_java25.service.RespondedApplicantService;
 import kg.attractor.job_search_java25.service.VacancyService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +17,7 @@ import java.util.List;
 public class VacancyController {
 
     private final VacancyService vacancyService;
+    private final RespondedApplicantService respondedApplicantService;
 
     @GetMapping
     public ResponseEntity<List<Vacancy>> getAllActive() {
@@ -31,12 +33,12 @@ public class VacancyController {
 
     @PostMapping
     public ResponseEntity<Vacancy> create(@RequestBody VacancyCreateDto dto) {
-        return ResponseEntity.ok(vacancyService.createVacancy(dto));
+        Vacancy created = vacancyService.createVacancy(dto);
+        return ResponseEntity.status(201).body(created);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Vacancy> update(@PathVariable int id,
-                                          @RequestBody VacancyUpdateDto dto) {
+    public ResponseEntity<Vacancy> update(@PathVariable int id, @RequestBody VacancyUpdateDto dto) {
         return vacancyService.updateVacancy(id, dto)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -60,8 +62,7 @@ public class VacancyController {
     }
 
     @PatchMapping("/{id}/status")
-    public ResponseEntity<Vacancy> toggleStatus(@PathVariable int id,
-                                                @RequestParam boolean isActive) {
+    public ResponseEntity<Vacancy> toggleStatus(@PathVariable int id, @RequestParam boolean isActive) {
         return vacancyService.toggleVacancyActiveStatus(id, isActive)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
