@@ -38,4 +38,9 @@ public class ResumeDao {
         String sql = "SELECT * FROM resumes WHERE applicant_id = ?";
         return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(Resume.class), applicantId);
     }
+
+    public List<Resume> searchByName(String name) {
+        String sql = "SELECT * FROM resumes WHERE LOWER(name) LIKE LOWER(?)";
+        return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(Resume.class), "%" + name + "%");
+    }
 }

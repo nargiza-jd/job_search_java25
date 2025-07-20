@@ -32,22 +32,20 @@ public class ResumeController {
         return ResponseEntity.ok(resumeService.getResumesByApplicantId(applicantId));
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<Resume> getById(@PathVariable int id) {
-        return resumeService.getResumeById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
-    }
-
     @PostMapping
     public ResponseEntity<Resume> createResume(@RequestBody ResumeCreateDto dto) {
         Resume created = resumeService.createResume(dto);
         return ResponseEntity.ok(created);
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<Resume> updateResume(@PathVariable int id, @RequestBody ResumeUpdateDto dto) {
-        return resumeService.updateResume(id, dto)
+    @GetMapping("/search")
+    public List<Resume> searchByName(@RequestParam String name) {
+        return resumeService.searchByName(name);
+    }
+
+    @GetMapping("/{id:\\d+}")
+    public ResponseEntity<Resume> getById(@PathVariable int id) {
+        return resumeService.getResumeById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }

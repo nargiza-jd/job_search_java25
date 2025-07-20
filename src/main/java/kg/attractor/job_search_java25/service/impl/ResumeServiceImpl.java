@@ -56,4 +56,9 @@ public class ResumeServiceImpl implements ResumeService {
     public List<Resume> findByCategory(int categoryId) {
         return resumeDao.getByCategory(categoryId);
     }
+
+    @Override
+    public List<Resume> searchByName(String name) {
+        return resumeDao.searchByName(name);
+    }
 }
