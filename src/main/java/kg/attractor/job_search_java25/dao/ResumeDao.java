@@ -5,8 +5,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.dao.support.DataAccessUtils;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
 
+import java.sql.PreparedStatement;
+import java.sql.Statement;
+import java.sql.Timestamp;
 import java.util.List;
 import java.util.Optional;
 
@@ -48,18 +53,21 @@ public class ResumeDao {
         String sql = "INSERT INTO resumes (name, category_id, salary, applicant_id, is_active, created_date, update_time) " +
                 "VALUES (?, ?, ?, ?, ?, ?, ?)";
 
-        jdbcTemplate.update(sql,
-                resume.getName(),
-                resume.getCategoryId(),
-                resume.getSalary(),
-                resume.getApplicantId(),
-                resume.isActive(),
-                resume.getCreatedDate(),
-                resume.getUpdateTime()
-        );
+        KeyHolder keyHolder = new GeneratedKeyHolder();
 
-        Integer id = jdbcTemplate.queryForObject("SELECT MAX(id) FROM resumes", Integer.class);
-        resume.setId(id);
+        jdbcTemplate.update(connection -> {
+            PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+            ps.setString(1, resume.getName());
+            ps.setInt(2, resume.getCategoryId());
+            ps.setDouble(3, resume.getSalary());
+            ps.setInt(4, resume.getApplicantId());
+            ps.setBoolean(5, resume.isActive());
+            ps.setTimestamp(6, Timestamp.valueOf(resume.getCreatedDate()));
+            ps.setTimestamp(7, Timestamp.valueOf(resume.getUpdateTime()));
+            return ps;
+        }, keyHolder);
+
+        resume.setId(keyHolder.getKey().intValue());
         return resume;
     }
 
