@@ -4,10 +4,16 @@ import kg.attractor.job_search_java25.dao.mappers.VacancyMapper;
 import kg.attractor.job_search_java25.model.Vacancy;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
 
+import java.sql.PreparedStatement;
+import java.sql.Statement;
+import java.sql.Timestamp;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 @Component
 @RequiredArgsConstructor
@@ -44,20 +50,27 @@ public class VacancyDao {
         return jdbcTemplate.queryForObject(sql, new VacancyMapper(), id);
     }
 
-    public void save(Vacancy vacancy) {
-        String sql = "INSERT INTO vacancies (name, description, category_id, salary, exp_from, exp_to, is_active, author_id, created_date, update_time) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        jdbcTemplate.update(sql,
-                vacancy.getName(),
-                vacancy.getDescription(),
-                vacancy.getCategoryId(),
-                vacancy.getSalary(),
-                vacancy.getExpFrom(),
-                vacancy.getExpTo(),
-                vacancy.isActive(),
-                vacancy.getAuthorId(),
-                vacancy.getCreatedDate(),
-                vacancy.getUpdateTime());
+    public int save(Vacancy vacancy) {
+        String sql = "INSERT INTO vacancies (name, description, category_id, salary, exp_from, exp_to, is_active, author_id, created_date, update_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+
+        jdbcTemplate.update(connection -> {
+            PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+            ps.setString(1, vacancy.getName());
+            ps.setString(2, vacancy.getDescription());
+            ps.setInt(3, vacancy.getCategoryId());
+            ps.setDouble(4, vacancy.getSalary());
+            ps.setInt(5, vacancy.getExpFrom());
+            ps.setInt(6, vacancy.getExpTo());
+            ps.setBoolean(7, vacancy.isActive());
+            ps.setInt(8, vacancy.getAuthorId());
+            ps.setTimestamp(9, Timestamp.valueOf(vacancy.getCreatedDate()));
+            ps.setTimestamp(10, Timestamp.valueOf(vacancy.getUpdateTime()));
+            return ps;
+        }, keyHolder);
+
+        return Objects.requireNonNull(keyHolder.getKey()).intValue();
     }
 
     public void update(Vacancy vacancy) {
