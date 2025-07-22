@@ -167,3 +167,55 @@ databaseChangeLog:
               - column:
                   name: applicant_id
                   type: INT
+  - changeSet:
+      id: add-foreign-keys
+      author: nargiza
+      changes:
+        - addForeignKeyConstraint:
+            baseTableName: resumes
+            baseColumnNames: applicant_id
+            referencedTableName: users
+            referencedColumnNames: id
+            constraintName: fk_resumes_applicant
+
+        - addForeignKeyConstraint:
+            baseTableName: resumes
+            baseColumnNames: category_id
+            referencedTableName: categories
+            referencedColumnNames: id
+            constraintName: fk_resumes_category
+
+        - addForeignKeyConstraint:
+            baseTableName: vacancies
+            baseColumnNames: category_id
+            referencedTableName: categories
+            referencedColumnNames: id
+            constraintName: fk_vacancies_category
+
+        - addForeignKeyConstraint:
+            baseTableName: vacancies
+            baseColumnNames: author_id
+            referencedTableName: users
+            referencedColumnNames: id
+            constraintName: fk_vacancies_author
+
+        - addForeignKeyConstraint:
+            baseTableName: responded_applicants
+            baseColumnNames: resume_id
+            referencedTableName: resumes
+            referencedColumnNames: id
+            constraintName: fk_response_resume
+
+        - addForeignKeyConstraint:
+            baseTableName: responded_applicants
+            baseColumnNames: vacancy_id
+            referencedTableName: vacancies
+            referencedColumnNames: id
+            constraintName: fk_response_vacancy
+
+        - addForeignKeyConstraint:
+            baseTableName: responded_applicants
+            baseColumnNames: applicant_id
+            referencedTableName: users
+            referencedColumnNames: id
+            constraintName: fk_response_applicant
