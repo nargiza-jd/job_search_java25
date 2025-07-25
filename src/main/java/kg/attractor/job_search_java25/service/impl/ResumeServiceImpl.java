@@ -4,19 +4,25 @@ import kg.attractor.job_search_java25.dao.ResumeDao;
 import kg.attractor.job_search_java25.dto.ResumeCreateDto;
 import kg.attractor.job_search_java25.dto.ResumeUpdateDto;
 import kg.attractor.job_search_java25.model.Resume;
+import kg.attractor.job_search_java25.model.WorkExperienceInfo;
 import kg.attractor.job_search_java25.service.ResumeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import kg.attractor.job_search_java25.dao.EducationInfoDao;
+import kg.attractor.job_search_java25.dao.WorkExperienceInfoDao;
+import kg.attractor.job_search_java25.model.EducationInfo;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-@Service
 @RequiredArgsConstructor
+@Service
 public class ResumeServiceImpl implements ResumeService {
 
     private final ResumeDao resumeDao;
+    private final EducationInfoDao educationDao;
+    private final WorkExperienceInfoDao workDao;
 
     @Override
     public Resume createResume(ResumeCreateDto dto) {
@@ -29,7 +35,36 @@ public class ResumeServiceImpl implements ResumeService {
         resume.setCreatedDate(LocalDateTime.now());
         resume.setUpdateTime(LocalDateTime.now());
 
-        return resumeDao.save(resume);
+        Resume savedResume = resumeDao.save(resume);
+
+        if (dto.getEducationList() != null && !dto.getEducationList().isEmpty()) {
+            List<EducationInfo> educationList = dto.getEducationList().stream().map(e -> {
+                EducationInfo edu = new EducationInfo();
+                edu.setResumeId(savedResume.getId());
+                edu.setInstitution(e.getInstitution());
+                edu.setProgram(e.getProgram());
+                edu.setStartDate(e.getStartDate());
+                edu.setEndDate(e.getEndDate());
+                edu.setDegree(e.getDegree());
+                return edu;
+            }).toList();
+            educationDao.saveAll(savedResume.getId(), educationList);
+        }
+
+        if (dto.getWorkExperienceList() != null && !dto.getWorkExperienceList().isEmpty()) {
+            List<WorkExperienceInfo> workList = dto.getWorkExperienceList().stream().map(w -> {
+                WorkExperienceInfo info = new WorkExperienceInfo();
+                info.setResumeId(savedResume.getId());
+                info.setYears(w.getYears());
+                info.setCompanyName(w.getCompanyName());
+                info.setPosition(w.getPosition());
+                info.setResponsibilities(w.getResponsibilities());
+                return info;
+            }).toList();
+            workDao.saveAll(savedResume.getId(), workList);
+        }
+
+        return savedResume;
     }
 
     @Override

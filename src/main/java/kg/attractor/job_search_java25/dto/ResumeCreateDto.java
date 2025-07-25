@@ -1,9 +1,12 @@
 package kg.attractor.job_search_java25.dto;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
+
+import java.util.List;
 
 @Data
 public class ResumeCreateDto {
@@ -20,4 +23,10 @@ public class ResumeCreateDto {
 
     @Min(value = 1, message = "Applicant ID must be a positive number")
     private int applicantId;
+
+    @Valid
+    private List<EducationInfoCreateUpdateDto> educationList;
+
+    @Valid
+    private List<WorkExperienceInfoCreateUpdateDto> workExperienceList;
 }

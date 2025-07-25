@@ -1,5 +1,6 @@
 package kg.attractor.job_search_java25.dao;
 
+import kg.attractor.job_search_java25.dao.mappers.ResumeMapper;
 import kg.attractor.job_search_java25.model.Resume;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.support.DataAccessUtils;
@@ -22,7 +23,7 @@ public class ResumeDao {
 
     public List<Resume> getAll() {
         String sql = "SELECT * FROM resumes";
-        return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(Resume.class));
+        return jdbcTemplate.query(sql, new ResumeMapper());
     }
 
     public Optional<Resume> getById(int id) {
