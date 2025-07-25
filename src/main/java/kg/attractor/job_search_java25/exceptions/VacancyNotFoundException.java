@@ -4,4 +4,8 @@ public class VacancyNotFoundException extends NotFoundException {
     public VacancyNotFoundException() {
         super("Vacancy");
     }
+
+    public VacancyNotFoundException(String message) {
+        super(message);
+    }
 }
