@@ -1,7 +1,7 @@
 package kg.attractor.job_search_java25.controller;
 
+import kg.attractor.job_search_java25.dto.*;
 import kg.attractor.job_search_java25.exceptions.UserNotFoundException;
-import kg.attractor.job_search_java25.model.User;
 import kg.attractor.job_search_java25.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -12,7 +12,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Optional;
 
 @RequiredArgsConstructor
 @RestController
@@ -22,12 +21,12 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping
-    public ResponseEntity<List<User>> getAllUsers() {
+    public ResponseEntity<List<UserDto>> getAllUsers() {
         return ResponseEntity.ok(userService.getAllUsers());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<User> getUserById(@PathVariable int id) {
+    public ResponseEntity<UserDto> getUserById(@PathVariable int id) {
         try {
             return ResponseEntity.ok(userService.getUserById(id));
         } catch (UserNotFoundException e) {
@@ -36,15 +35,15 @@ public class UserController {
     }
 
     @PostMapping
-    public ResponseEntity<User> createUser(@RequestBody User user) {
-        User createdUser = userService.createUser(user);
+    public ResponseEntity<UserDto> createUser(@RequestBody UserRegistrationDto registrationDto) {
+        UserDto createdUser = userService.createUser(registrationDto);
         return new ResponseEntity<>(createdUser, HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<User> updateUser(@PathVariable int id, @RequestBody User user) {
+    public ResponseEntity<UserDto> updateUser(@PathVariable int id, @RequestBody UserProfileUpdateDto updateDto) {
         try {
-            User updatedUser = userService.updateUser(id, user);
+            UserDto updatedUser = userService.updateUser(id, updateDto);
             return ResponseEntity.ok(updatedUser);
         } catch (UserNotFoundException e) {
             return ResponseEntity.notFound().build();
@@ -84,24 +83,24 @@ public class UserController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<List<User>> searchApplicants(@RequestParam String query) {
+    public ResponseEntity<List<UserDto>> searchApplicants(@RequestParam String query) {
         return ResponseEntity.ok(userService.searchApplicants(query));
     }
 
     @GetMapping("/search/phone")
-    public ResponseEntity<List<User>> searchByPhone(@RequestParam String phone) {
+    public ResponseEntity<List<UserDto>> searchByPhone(@RequestParam String phone) {
         return ResponseEntity.ok(userService.findByPhoneNumber(phone));
     }
 
     @GetMapping("/search/email")
-    public ResponseEntity<User> searchByEmail(@RequestParam String email) {
-        Optional<User> user = Optional.ofNullable(userService.findByEmail(email));
-        return user.map(ResponseEntity::ok)
+    public ResponseEntity<UserDto> searchByEmail(@RequestParam String email) {
+        return userService.findByEmail(email)
+                .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @GetMapping("/search/name")
-    public ResponseEntity<List<User>> searchByName(@RequestParam String name) {
+    public ResponseEntity<List<UserDto>> searchByName(@RequestParam String name) {
         return ResponseEntity.ok(userService.findByName(name));
     }
 }
