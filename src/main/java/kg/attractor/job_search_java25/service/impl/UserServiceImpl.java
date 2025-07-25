@@ -5,11 +5,20 @@ import kg.attractor.job_search_java25.exceptions.UserNotFoundException;
 import kg.attractor.job_search_java25.model.User;
 import kg.attractor.job_search_java25.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -88,5 +97,46 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<User> findByName(String name) {
         return userDao.findByName(name);
+    }
+
+    @Override
+    public String saveAvatar(int userId, MultipartFile file) throws IOException {
+        User user = getUserById(userId);
+        String uploadDir = "uploads/avatars/";
+        Files.createDirectories(Paths.get(uploadDir));
+
+        String filename = UUID.randomUUID() + "_" + file.getOriginalFilename();
+        Path filePath = Paths.get(uploadDir, filename);
+        Files.write(filePath, file.getBytes());
+
+        user.setAvatar(filename);
+        updateUser(userId, user);
+        return filename;
+    }
+
+    @Override
+    public ResponseEntity<byte[]> getAvatar(int userId) throws IOException {
+        User user = getUserById(userId);
+        String filename = user.getAvatar();
+
+        if (filename == null || filename.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+        }
+
+        Path filePath = Paths.get("uploads/avatars", filename);
+        byte[] image = Files.readAllBytes(filePath);
+
+        MediaType mediaType = MediaType.APPLICATION_OCTET_STREAM;
+        if (filename.endsWith(".jpg") || filename.endsWith(".jpeg")) {
+            mediaType = MediaType.IMAGE_JPEG;
+        } else if (filename.endsWith(".png")) {
+            mediaType = MediaType.IMAGE_PNG;
+        } else if (filename.endsWith(".gif")) {
+            mediaType = MediaType.IMAGE_GIF;
+        }
+
+        return ResponseEntity.ok()
+                .contentType(mediaType)
+                .body(image);
     }
 }

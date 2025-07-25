@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
@@ -72,11 +73,13 @@ public class UserController {
     }
 
     @GetMapping("/{userId}/avatar")
-    public ResponseEntity<byte[]> downloadUserAvatar(@PathVariable int userId) {
+    public ResponseEntity<?> downloadUserAvatar(@PathVariable int userId) {
         try {
             return userService.getAvatar(userId);
         } catch (UserNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Пользователь не найден");
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Ошибка при загрузке аватара");
         }
     }
 
