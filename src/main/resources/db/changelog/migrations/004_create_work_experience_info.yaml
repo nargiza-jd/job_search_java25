@@ -1,0 +1,43 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-work-experience-info-table
+      author: nargiza
+      changes:
+        - createTable:
+            tableName: work_experience_info
+            columns:
+              - column:
+                  name: id
+                  type: INT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: resume_id
+                  type: INT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: years
+                  type: INT
+              - column:
+                  name: company_name
+                  type: VARCHAR(255)
+              - column:
+                  name: position
+                  type: VARCHAR(255)
+              - column:
+                  name: responsibilities
+                  type: TEXT
+
+  - changeSet:
+      id: fk-work-experience-info-resume
+      author: nargiza
+      changes:
+        - addForeignKeyConstraint:
+            baseTableName: work_experience_info
+            baseColumnNames: resume_id
+            referencedTableName: resumes
+            referencedColumnNames: id
+            constraintName: fk_work_resume

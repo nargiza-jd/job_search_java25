@@ -2,6 +2,10 @@ databaseChangeLog:
   - changeSet:
       id: create-users-table
       author: nargiza
+      preConditions:
+        - not:
+            - tableExists:
+                tableName: users
       changes:
         - createTable:
             tableName: users
