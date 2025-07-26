@@ -11,9 +11,9 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
 
 import java.sql.PreparedStatement;
-import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Component
@@ -57,7 +57,9 @@ public class ResumeDao {
         KeyHolder keyHolder = new GeneratedKeyHolder();
 
         jdbcTemplate.update(connection -> {
-            PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+
+            PreparedStatement ps = connection.prepareStatement(sql, new String[]{"ID"});
+
             ps.setString(1, resume.getName());
             ps.setInt(2, resume.getCategoryId());
             ps.setDouble(3, resume.getSalary());
@@ -68,7 +70,7 @@ public class ResumeDao {
             return ps;
         }, keyHolder);
 
-        resume.setId(keyHolder.getKey().intValue());
+        resume.setId(Objects.requireNonNull(keyHolder.getKey()).intValue());
         return resume;
     }
 

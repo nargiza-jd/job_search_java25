@@ -2,31 +2,36 @@ databaseChangeLog:
   - changeSet:
       id: insert-initial-users
       author: nargiza
+      preConditions:
+        - not:
+            - rowCount:
+                tableName: users
+                expectedRows: 1
       changes:
         - insert:
             tableName: users
             columns:
               - column:
                   name: name
-                  value: John
+                  value: "John"
               - column:
                   name: surname
-                  value: Doe
+                  value: "Doe"
               - column:
                   name: age
                   valueNumeric: 30
               - column:
                   name: email
-                  value: john@example.com
+                  value: "john.doe@example.com"
               - column:
                   name: password
-                  value: 12345
+                  value: "password123"
               - column:
                   name: phone_number
-                  value: "0555123456"
-              - column:
-                  name: avatar
-                  valueComputed: null
+                  value: "1234567890"
               - column:
                   name: account_type
-                  value: applicant
+                  value: "applicant"
+              - column:
+                  name: avatar
+                  value: "path/to/avatar.jpg"

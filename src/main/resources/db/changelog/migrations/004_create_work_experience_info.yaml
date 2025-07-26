@@ -2,6 +2,10 @@ databaseChangeLog:
   - changeSet:
       id: create-work-experience-info-table
       author: nargiza
+      preConditions:
+        - not:
+            - tableExists:
+                tableName: work_experience_info
       changes:
         - createTable:
             tableName: work_experience_info
@@ -34,6 +38,10 @@ databaseChangeLog:
   - changeSet:
       id: fk-work-experience-info-resume
       author: nargiza
+      preConditions:
+        - not:
+            - foreignKeyConstraintExists:
+                constraintName: fk_work_resume
       changes:
         - addForeignKeyConstraint:
             baseTableName: work_experience_info
@@ -41,3 +49,4 @@ databaseChangeLog:
             referencedTableName: resumes
             referencedColumnNames: id
             constraintName: fk_work_resume
+            onDelete: CASCADE

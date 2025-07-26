@@ -2,6 +2,10 @@ databaseChangeLog:
   - changeSet:
       id: create-education-info-table
       author: nargiza
+      preConditions:
+        - not:
+            - tableExists:
+                tableName: education_info
       changes:
         - createTable:
             tableName: education_info
@@ -37,6 +41,10 @@ databaseChangeLog:
   - changeSet:
       id: fk-education-info-resume
       author: nargiza
+      preConditions:
+        - not:
+            - foreignKeyConstraintExists:
+                constraintName: fk_education_resume
       changes:
         - addForeignKeyConstraint:
             baseTableName: education_info
@@ -44,3 +52,4 @@ databaseChangeLog:
             referencedTableName: resumes
             referencedColumnNames: id
             constraintName: fk_education_resume
+            onDelete: CASCADE
