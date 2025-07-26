@@ -1,0 +1,34 @@
+databaseChangeLog:
+  - changeSet:
+      id: insert-initial-categories
+      author: nargiza
+      preConditions:
+        - not:
+            - rowCount:
+                tableName: categories
+                expectedRows: 1
+      changes:
+        - insert:
+            tableName: categories
+            columns:
+              - column:
+                  name: name
+                  value: "Разработка ПО"
+        - insert:
+            tableName: categories
+            columns:
+              - column:
+                  name: name
+                  value: "Маркетинг"
+        - insert:
+            tableName: categories
+            columns:
+              - column:
+                  name: name
+                  value: "Дизайн"
+        - insert:
+            tableName: categories
+            columns:
+              - column:
+                  name: name
+                  value: "HR и Рекрутинг"

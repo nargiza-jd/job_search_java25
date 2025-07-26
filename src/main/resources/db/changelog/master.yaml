@@ -1,3 +1,15 @@
+#databaseChangeLog:
+#  - includeAll:
+#      path: db/changelog/migrations
+
 databaseChangeLog:
-  - includeAll:
-      path: db/changelog/migrations
+  - include:
+      file: db/changelog/migrations/001_create_tables.yaml
+  - include:
+      file: db/changelog/migrations/002_insert_initial_data.yaml
+  - include:
+      file: db/changelog/migrations/002_5_insert_initial_categories.yaml
+  - include:
+      file: db/changelog/migrations/003_create_education_info.yaml
+  - include:
+      file: db/changelog/migrations/004_create_work_experience_info.yaml

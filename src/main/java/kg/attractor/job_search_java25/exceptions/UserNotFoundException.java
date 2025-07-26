@@ -1,8 +1,8 @@
 package kg.attractor.job_search_java25.exceptions;
 
-public class UserNotFoundException extends RuntimeException {
+public class UserNotFoundException extends NotFoundException {
     public UserNotFoundException() {
-        super("Пользователь не найден");
+        super("User");
     }
 
     public UserNotFoundException(String message) {

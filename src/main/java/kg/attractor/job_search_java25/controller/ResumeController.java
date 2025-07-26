@@ -1,5 +1,6 @@
 package kg.attractor.job_search_java25.controller;
 
+import jakarta.validation.Valid;
 import kg.attractor.job_search_java25.dto.ResumeCreateDto;
 import kg.attractor.job_search_java25.dto.ResumeUpdateDto;
 import kg.attractor.job_search_java25.model.Resume;
@@ -12,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/resume")
+@RequestMapping("/resumes")
 @RequiredArgsConstructor
 public class ResumeController {
 
@@ -46,7 +47,7 @@ public class ResumeController {
     }
 
     @PostMapping
-    public ResponseEntity<Resume> createResume(@RequestBody ResumeCreateDto dto) {
+    public ResponseEntity<Resume> createResume(@RequestBody @Valid ResumeCreateDto dto) {
         Resume created = resumeService.createResume(dto);
         return new ResponseEntity<>(created, HttpStatus.CREATED);
     }

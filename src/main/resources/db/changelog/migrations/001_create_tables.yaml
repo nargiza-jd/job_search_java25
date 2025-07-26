@@ -2,6 +2,10 @@ databaseChangeLog:
   - changeSet:
       id: create-users-table
       author: nargiza
+      preConditions:
+        - not:
+            - tableExists:
+                tableName: users
       changes:
         - createTable:
             tableName: users
@@ -15,34 +19,47 @@ databaseChangeLog:
                     nullable: false
               - column:
                   name: name
-                  type: VARCHAR(100)
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
               - column:
                   name: surname
-                  type: VARCHAR(100)
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
               - column:
                   name: age
                   type: INT
               - column:
                   name: email
-                  type: VARCHAR(150)
+                  type: VARCHAR(255)
                   constraints:
                     unique: true
+                    nullable: false
               - column:
                   name: password
-                  type: VARCHAR(100)
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
               - column:
                   name: phone_number
+                  type: VARCHAR(20)
+              - column:
+                  name: account_type
                   type: VARCHAR(50)
+                  constraints:
+                    nullable: false
               - column:
                   name: avatar
                   type: VARCHAR(255)
-              - column:
-                  name: account_type
-                  type: VARCHAR(30)
 
   - changeSet:
       id: create-categories-table
       author: nargiza
+      preConditions:
+        - not:
+            - tableExists:
+                tableName: categories
       changes:
         - createTable:
             tableName: categories
@@ -50,19 +67,31 @@ databaseChangeLog:
               - column:
                   name: id
                   type: INT
+                  autoIncrement: true
                   constraints:
                     primaryKey: true
                     nullable: false
               - column:
                   name: name
                   type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+                    unique: true
               - column:
                   name: parent_id
                   type: INT
+                  constraints:
+                    foreignKeyName: fk_category_parent
+                    references: categories(id)
+                    deleteCascade: false
 
   - changeSet:
       id: create-resumes-table
       author: nargiza
+      preConditions:
+        - not:
+            - tableExists:
+                tableName: resumes
       changes:
         - createTable:
             tableName: resumes
@@ -75,30 +104,43 @@ databaseChangeLog:
                     primaryKey: true
                     nullable: false
               - column:
-                  name: applicant_id
-                  type: INT
-              - column:
                   name: name
                   type: VARCHAR(255)
+                  constraints:
+                    nullable: false
               - column:
                   name: category_id
                   type: INT
+                  constraints:
+                    nullable: false
               - column:
                   name: salary
-                  type: DOUBLE
+                  type: DECIMAL(10, 2)
+              - column:
+                  name: applicant_id
+                  type: INT
+                  constraints:
+                    nullable: false
               - column:
                   name: is_active
                   type: BOOLEAN
+                  defaultValueBoolean: true
               - column:
                   name: created_date
-                  type: TIMESTAMP
+                  type: DATE
+                  defaultValueComputed: CURRENT_DATE
               - column:
                   name: update_time
                   type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
 
   - changeSet:
       id: create-vacancies-table
       author: nargiza
+      preConditions:
+        - not:
+            - tableExists:
+                tableName: vacancies
       changes:
         - createTable:
             tableName: vacancies
@@ -113,37 +155,40 @@ databaseChangeLog:
               - column:
                   name: name
                   type: VARCHAR(255)
+                  constraints:
+                    nullable: false
               - column:
                   name: description
                   type: TEXT
               - column:
                   name: category_id
                   type: INT
+                  constraints:
+                    nullable: false
               - column:
                   name: salary
-                  type: DOUBLE
-              - column:
-                  name: exp_from
-                  type: INT
-              - column:
-                  name: exp_to
-                  type: INT
-              - column:
-                  name: is_active
-                  type: BOOLEAN
+                  type: DECIMAL(10, 2)
               - column:
                   name: author_id
                   type: INT
+                  constraints:
+                    nullable: false
               - column:
                   name: created_date
-                  type: TIMESTAMP
+                  type: DATE
+                  defaultValueComputed: CURRENT_DATE
               - column:
-                  name: update_time
-                  type: TIMESTAMP
+                  name: is_active
+                  type: BOOLEAN
+                  defaultValueBoolean: true
 
   - changeSet:
       id: create-responded-applicants-table
       author: nargiza
+      preConditions:
+        - not:
+            - tableExists:
+                tableName: responded_applicants
       changes:
         - createTable:
             tableName: responded_applicants
@@ -158,18 +203,30 @@ databaseChangeLog:
               - column:
                   name: resume_id
                   type: INT
+                  constraints:
+                    nullable: false
               - column:
                   name: vacancy_id
                   type: INT
-              - column:
-                  name: confirmation
-                  type: BOOLEAN
+                  constraints:
+                    nullable: false
               - column:
                   name: applicant_id
                   type: INT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: response_date
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+
   - changeSet:
-      id: add-foreign-keys
+      id: add-initial-foreign-keys
       author: nargiza
+      preConditions:
+        - not:
+            - foreignKeyConstraintExists:
+                constraintName: fk_resumes_applicant
       changes:
         - addForeignKeyConstraint:
             baseTableName: resumes
@@ -177,45 +234,100 @@ databaseChangeLog:
             referencedTableName: users
             referencedColumnNames: id
             constraintName: fk_resumes_applicant
+            onDelete: CASCADE
 
+  - changeSet:
+      id: add-fk-resumes-category
+      author: nargiza
+      preConditions:
+        - not:
+            - foreignKeyConstraintExists:
+                constraintName: fk_resumes_category
+      changes:
         - addForeignKeyConstraint:
             baseTableName: resumes
             baseColumnNames: category_id
             referencedTableName: categories
             referencedColumnNames: id
             constraintName: fk_resumes_category
+            onDelete: RESTRICT #
 
+  - changeSet:
+      id: add-fk-vacancies-category
+      author: nargiza
+      preConditions:
+        - not:
+            - foreignKeyConstraintExists:
+                constraintName: fk_vacancies_category
+      changes:
         - addForeignKeyConstraint:
             baseTableName: vacancies
             baseColumnNames: category_id
             referencedTableName: categories
             referencedColumnNames: id
             constraintName: fk_vacancies_category
+            onDelete: RESTRICT
 
+  - changeSet:
+      id: add-fk-vacancies-author
+      author: nargiza
+      preConditions:
+        - not:
+            - foreignKeyConstraintExists:
+                constraintName: fk_vacancies_author
+      changes:
         - addForeignKeyConstraint:
             baseTableName: vacancies
             baseColumnNames: author_id
             referencedTableName: users
             referencedColumnNames: id
             constraintName: fk_vacancies_author
+            onDelete: CASCADE
 
+  - changeSet:
+      id: add-fk-response-resume
+      author: nargiza
+      preConditions:
+        - not:
+            - foreignKeyConstraintExists:
+                constraintName: fk_responded_resume
+      changes:
         - addForeignKeyConstraint:
             baseTableName: responded_applicants
             baseColumnNames: resume_id
             referencedTableName: resumes
             referencedColumnNames: id
-            constraintName: fk_response_resume
+            constraintName: fk_responded_resume
+            onDelete: CASCADE
 
+  - changeSet:
+      id: add-fk-response-vacancy
+      author: nargiza
+      preConditions:
+        - not:
+            - foreignKeyConstraintExists:
+                constraintName: fk_responded_vacancy
+      changes:
         - addForeignKeyConstraint:
             baseTableName: responded_applicants
             baseColumnNames: vacancy_id
             referencedTableName: vacancies
             referencedColumnNames: id
-            constraintName: fk_response_vacancy
+            constraintName: fk_responded_vacancy
+            onDelete: CASCADE
 
+  - changeSet:
+      id: add-fk-response-applicant
+      author: nargiza
+      preConditions:
+        - not:
+            - foreignKeyConstraintExists:
+                constraintName: fk_responded_applicant
+      changes:
         - addForeignKeyConstraint:
             baseTableName: responded_applicants
             baseColumnNames: applicant_id
             referencedTableName: users
             referencedColumnNames: id
-            constraintName: fk_response_applicant
+            constraintName: fk_responded_applicant
+            onDelete: CASCADE
