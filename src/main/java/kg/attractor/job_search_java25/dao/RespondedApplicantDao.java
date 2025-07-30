@@ -1,6 +1,7 @@
 package kg.attractor.job_search_java25.dao;
 
 import kg.attractor.job_search_java25.model.RespondedApplicant;
+import kg.attractor.job_search_java25.model.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -9,9 +10,9 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
 import java.sql.PreparedStatement;
-import java.sql.Statement;
 import java.util.List;
 import java.util.Objects;
+import java.time.LocalDateTime;
 
 @Repository
 @RequiredArgsConstructor
@@ -23,7 +24,7 @@ public class RespondedApplicantDao {
         KeyHolder keyHolder = new GeneratedKeyHolder();
 
         jdbcTemplate.update(connection -> {
-            PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+            PreparedStatement ps = connection.prepareStatement(sql, new String[]{"id"});
             ps.setInt(1, resumeId);
             ps.setInt(2, vacancyId);
             ps.setInt(3, applicantId);
@@ -37,6 +38,7 @@ public class RespondedApplicantDao {
         ra.setVacancyId(vacancyId);
         ra.setApplicantId(applicantId);
         ra.setConfirmation(false);
+
         return ra;
     }
 
@@ -65,6 +67,29 @@ public class RespondedApplicantDao {
         return jdbcTemplate.queryForList(sql, Integer.class, applicantId);
     }
 
+    public List<User> getApplicantsByVacancyId(int vacancyId) {
+        String sql = """
+            SELECT u.* FROM users u
+            JOIN resumes r ON u.id = r.applicant_id
+            JOIN responded_applicants ra ON ra.resume_id = r.id
+            WHERE ra.vacancy_id = ?
+            """;
+
+        return jdbcTemplate.query(sql, new Object[]{vacancyId}, (rs, rowNum) -> {
+            User user = new User();
+            user.setId(rs.getInt("id"));
+            user.setName(rs.getString("name"));
+            user.setSurname(rs.getString("surname"));
+            user.setAge(rs.getInt("age"));
+            user.setEmail(rs.getString("email"));
+            user.setPassword(rs.getString("password"));
+            user.setPhoneNumber(rs.getString("phone_number"));
+            user.setAvatar(rs.getString("avatar"));
+            user.setAccountType(rs.getString("account_type"));
+            return user;
+        });
+    }
+
     private RowMapper<RespondedApplicant> getMapper() {
         return (rs, rowNum) -> {
             RespondedApplicant ra = new RespondedApplicant();
@@ -73,7 +98,10 @@ public class RespondedApplicantDao {
             ra.setVacancyId(rs.getInt("vacancy_id"));
             ra.setApplicantId(rs.getInt("applicant_id"));
             ra.setConfirmation(rs.getBoolean("confirmation"));
-            ra.setResponseDate(rs.getTimestamp("response_date").toLocalDateTime());
+
+            if (rs.getTimestamp("response_date") != null) {
+                ra.setResponseDate(rs.getTimestamp("response_date").toLocalDateTime());
+            }
             return ra;
         };
     }

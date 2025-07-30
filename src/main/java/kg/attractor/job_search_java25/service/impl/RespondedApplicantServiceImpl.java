@@ -10,8 +10,6 @@ import kg.attractor.job_search_java25.service.RespondedApplicantService;
 import kg.attractor.job_search_java25.service.ResumeService;
 import kg.attractor.job_search_java25.service.VacancyService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -62,30 +60,8 @@ public class RespondedApplicantServiceImpl implements RespondedApplicantService 
         return vacancyService.getVacanciesByIds(ids);
     }
 
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
-
     @Override
     public List<User> getApplicantsByVacancyId(int vacancyId) {
-        String sql = """
-            SELECT u.* FROM users u
-            JOIN resumes r ON u.id = r.applicant_id
-            JOIN responded_applicants ra ON ra.resume_id = r.id
-            WHERE ra.vacancy_id = ?
-            """;
-
-        return jdbcTemplate.query(sql, new Object[]{vacancyId}, (rs, rowNum) -> {
-            User user = new User();
-            user.setId(rs.getInt("id"));
-            user.setName(rs.getString("name"));
-            user.setSurname(rs.getString("surname"));
-            user.setAge(rs.getInt("age"));
-            user.setEmail(rs.getString("email"));
-            user.setPassword(rs.getString("password"));
-            user.setPhoneNumber(rs.getString("phone_number"));
-            user.setAvatar(rs.getString("avatar"));
-            user.setAccountType(rs.getString("account_type"));
-            return user;
-        });
+        return respondedApplicantDao.getApplicantsByVacancyId(vacancyId);
     }
 }
