@@ -53,7 +53,7 @@ public class ResumeController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Resume> updateResume(@PathVariable int id, @RequestBody ResumeUpdateDto dto) {
+    public ResponseEntity<Resume> updateResume(@PathVariable int id, @RequestBody @Valid ResumeUpdateDto dto) {
         return resumeService.updateResume(id, dto)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());

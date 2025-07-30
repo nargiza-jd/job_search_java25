@@ -1,5 +1,7 @@
 package kg.attractor.job_search_java25.controller;
 
+import jakarta.validation.Valid;
+import kg.attractor.job_search_java25.dto.RespondToVacancyDto;
 import kg.attractor.job_search_java25.model.RespondedApplicant;
 import kg.attractor.job_search_java25.model.User;
 import kg.attractor.job_search_java25.model.Vacancy;
@@ -19,9 +21,8 @@ public class RespondedApplicantController {
 
     @PostMapping
     public ResponseEntity<RespondedApplicant> respond(
-            @RequestParam int resumeId,
-            @RequestParam int vacancyId) {
-        return ResponseEntity.status(201).body(service.createResponse(resumeId, vacancyId));
+            @RequestBody @Valid RespondToVacancyDto dto) {
+        return ResponseEntity.status(201).body(service.createResponse(dto.getResumeId(), dto.getVacancyId()));
     }
 
     @GetMapping

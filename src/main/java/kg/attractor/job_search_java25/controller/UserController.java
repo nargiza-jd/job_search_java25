@@ -1,5 +1,6 @@
 package kg.attractor.job_search_java25.controller;
 
+import jakarta.validation.Valid;
 import kg.attractor.job_search_java25.dto.*;
 import kg.attractor.job_search_java25.exceptions.UserNotFoundException;
 import kg.attractor.job_search_java25.service.UserService;
@@ -35,13 +36,13 @@ public class UserController {
     }
 
     @PostMapping
-    public ResponseEntity<UserDto> createUser(@RequestBody UserRegistrationDto registrationDto) {
+    public ResponseEntity<UserDto> createUser(@RequestBody @Valid UserRegistrationDto registrationDto) {
         UserDto createdUser = userService.createUser(registrationDto);
         return new ResponseEntity<>(createdUser, HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<UserDto> updateUser(@PathVariable int id, @RequestBody UserProfileUpdateDto updateDto) {
+    public ResponseEntity<UserDto> updateUser(@PathVariable int id, @RequestBody @Valid UserProfileUpdateDto updateDto) {
         try {
             UserDto updatedUser = userService.updateUser(id, updateDto);
             return ResponseEntity.ok(updatedUser);
