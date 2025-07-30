@@ -93,4 +93,10 @@ public class ResumeDao {
         String sql = "DELETE FROM resumes WHERE id = ?";
         return jdbcTemplate.update(sql, id) > 0;
     }
+
+    public boolean existsById(int id) {
+        String sql = "SELECT COUNT(*) FROM resumes WHERE id = ?";
+        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, id);
+        return count != null && count > 0;
+    }
 }

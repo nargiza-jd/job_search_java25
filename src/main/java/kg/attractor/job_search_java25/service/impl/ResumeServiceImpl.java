@@ -1,15 +1,14 @@
 package kg.attractor.job_search_java25.service.impl;
 
-import kg.attractor.job_search_java25.dao.ResumeDao;
+import kg.attractor.job_search_java25.dao.*;
 import kg.attractor.job_search_java25.dto.ResumeCreateDto;
 import kg.attractor.job_search_java25.dto.ResumeUpdateDto;
+import kg.attractor.job_search_java25.exceptions.NotFoundException;
 import kg.attractor.job_search_java25.model.Resume;
 import kg.attractor.job_search_java25.model.WorkExperienceInfo;
 import kg.attractor.job_search_java25.service.ResumeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import kg.attractor.job_search_java25.dao.EducationInfoDao;
-import kg.attractor.job_search_java25.dao.WorkExperienceInfoDao;
 import kg.attractor.job_search_java25.model.EducationInfo;
 
 import java.time.LocalDateTime;
@@ -23,9 +22,18 @@ public class ResumeServiceImpl implements ResumeService {
     private final ResumeDao resumeDao;
     private final EducationInfoDao educationDao;
     private final WorkExperienceInfoDao workDao;
+    private final CategoryDao categoryDao;
+    private final UserDao userDao;
 
     @Override
     public Resume createResume(ResumeCreateDto dto) {
+        if (!categoryDao.existsById(dto.getCategoryId())) {
+            throw new NotFoundException("Категория с ID " + dto.getCategoryId() + " не найдена.");
+        }
+
+        if (!userDao.existsById(dto.getApplicantId())) {
+            throw new NotFoundException("Заявитель с ID " + dto.getApplicantId() + " не найден.");
+        }
         Resume resume = new Resume();
         resume.setName(dto.getName());
         resume.setCategoryId(dto.getCategoryId());
@@ -72,6 +80,10 @@ public class ResumeServiceImpl implements ResumeService {
         Optional<Resume> optional = resumeDao.getById(id);
         if (optional.isEmpty()) {
             return Optional.empty();
+        }
+
+        if (!categoryDao.existsById(dto.getCategoryId())) {
+            throw new NotFoundException("Категория с ID " + dto.getCategoryId() + " не найдена.");
         }
 
         Resume resume = optional.get();

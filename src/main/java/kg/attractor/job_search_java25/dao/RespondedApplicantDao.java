@@ -11,28 +11,31 @@ import org.springframework.stereotype.Repository;
 import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.util.List;
+import java.util.Objects;
 
 @Repository
 @RequiredArgsConstructor
 public class RespondedApplicantDao {
     private final JdbcTemplate jdbcTemplate;
 
-    public RespondedApplicant save(int resumeId, int vacancyId) {
-        String sql = "INSERT INTO responded_applicants (resume_id, vacancy_id, confirmation) VALUES (?, ?, ?)";
+    public RespondedApplicant save(int resumeId, int vacancyId, int applicantId) {
+        String sql = "INSERT INTO responded_applicants (resume_id, vacancy_id, applicant_id, confirmation) VALUES (?, ?, ?, ?)";
         KeyHolder keyHolder = new GeneratedKeyHolder();
 
         jdbcTemplate.update(connection -> {
             PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
             ps.setInt(1, resumeId);
             ps.setInt(2, vacancyId);
-            ps.setBoolean(3, false);
+            ps.setInt(3, applicantId);
+            ps.setBoolean(4, false);
             return ps;
         }, keyHolder);
 
         RespondedApplicant ra = new RespondedApplicant();
-        ra.setId(keyHolder.getKey().intValue());
+        ra.setId(Objects.requireNonNull(keyHolder.getKey()).intValue());
         ra.setResumeId(resumeId);
         ra.setVacancyId(vacancyId);
+        ra.setApplicantId(applicantId);
         ra.setConfirmation(false);
         return ra;
     }
@@ -68,7 +71,9 @@ public class RespondedApplicantDao {
             ra.setId(rs.getInt("id"));
             ra.setResumeId(rs.getInt("resume_id"));
             ra.setVacancyId(rs.getInt("vacancy_id"));
+            ra.setApplicantId(rs.getInt("applicant_id"));
             ra.setConfirmation(rs.getBoolean("confirmation"));
+            ra.setResponseDate(rs.getTimestamp("response_date").toLocalDateTime());
             return ra;
         };
     }

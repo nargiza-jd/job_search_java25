@@ -219,6 +219,12 @@ databaseChangeLog:
                   name: response_date
                   type: TIMESTAMP
                   defaultValueComputed: CURRENT_TIMESTAMP
+              - column:
+                  name: confirmation
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
 
   - changeSet:
       id: add-initial-foreign-keys

@@ -2,9 +2,12 @@
 #  - includeAll:
 #      path: db/changelog/migrations
 
+# src/main/resources/db/changelog/master.yaml
 databaseChangeLog:
   - include:
       file: db/changelog/migrations/001_create_tables.yaml
+  - include:
+      file: db/changelog/migrations/001_5_add_exp_and_update_time_to_vacancies.yaml
   - include:
       file: db/changelog/migrations/002_insert_initial_data.yaml
   - include:

@@ -3,7 +3,6 @@ package kg.attractor.job_search_java25.service.impl;
 import kg.attractor.job_search_java25.dao.UserDao;
 import kg.attractor.job_search_java25.dto.*;
 import kg.attractor.job_search_java25.exceptions.UserNotFoundException;
-import kg.attractor.job_search_java25.model.User;
 import kg.attractor.job_search_java25.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -17,7 +16,6 @@ import java.nio.file.*;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -25,40 +23,15 @@ public class UserServiceImpl implements UserService {
 
     private final UserDao userDao;
 
-    private UserDto toDto(User user) {
-        UserDto dto = new UserDto();
-        dto.setId(user.getId());
-        dto.setName(user.getName());
-        dto.setSurname(user.getSurname());
-        dto.setAge(user.getAge());
-        dto.setEmail(user.getEmail());
-        dto.setPhoneNumber(user.getPhoneNumber());
-        dto.setAvatar(user.getAvatar());
-        dto.setAccountType(user.getAccountType());
-        return dto;
-    }
-
-    private User fromRegistrationDto(UserRegistrationDto dto) {
-        User user = new User();
-        user.setEmail(dto.getEmail());
-        user.setPassword(dto.getPassword());
-        user.setName(dto.getName());
-        user.setAccountType(dto.getAccountType());
-        return user;
-    }
-
     @Override
     public List<UserDto> getAllUsers() {
-        return userDao.getAllUsers().stream()
-                .map(this::toDto)
-                .collect(Collectors.toList());
+        return userDao.getAllUsers();
     }
 
     @Override
     public UserDto getUserById(int id) {
-        User user = userDao.getUserById(id)
+        return userDao.getUserById(id)
                 .orElseThrow(() -> new UserNotFoundException("Пользователь с ID " + id + " не найден"));
-        return toDto(user);
     }
 
     @Override
@@ -67,85 +40,81 @@ public class UserServiceImpl implements UserService {
             throw new IllegalArgumentException("Email '" + dto.getEmail() + "' уже существует");
         });
 
-        User user = fromRegistrationDto(dto);
-        int id = userDao.addUser(user);
-        return getUserById(id);
+        UserDto createdUser = userDao.addUser(dto);
+        return createdUser;
     }
 
     @Override
     public UserDto updateUser(int id, UserProfileUpdateDto dto) {
-        User existing = userDao.getUserById(id)
+
+        UserDto existingUserDto = userDao.getUserById(id)
                 .orElseThrow(() -> new UserNotFoundException("Пользователь не найден"));
 
-        existing.setName(dto.getName());
-        existing.setSurname(dto.getSurname());
-        existing.setAge(dto.getAge());
-        existing.setPhoneNumber(dto.getPhoneNumber());
+        existingUserDto.setName(dto.getName());
+        existingUserDto.setSurname(dto.getSurname());
+        existingUserDto.setAge(dto.getAge());
+        existingUserDto.setPhoneNumber(dto.getPhoneNumber());
 
-        userDao.updateUser(id, existing);
-        return toDto(existing);
+        userDao.updateUserFromDto(id, existingUserDto);
+
+        return existingUserDto;
     }
 
     @Override
     public boolean deleteUser(int id) {
-        return userDao.deleteUser(id) > 0;
+        return userDao.deleteUser(id);
     }
 
     @Override
     public List<UserDto> searchApplicants(String query) {
-        return userDao.searchApplicants(query).stream()
-                .map(this::toDto)
-                .collect(Collectors.toList());
+        return userDao.searchApplicants(query);
     }
 
     @Override
     public List<UserDto> findByPhoneNumber(String phoneNumber) {
-        return userDao.findByPhoneNumber(phoneNumber).stream()
-                .map(this::toDto)
-                .collect(Collectors.toList());
+        return userDao.findByPhoneNumber(phoneNumber);
     }
 
     @Override
     public Optional<UserDto> findByEmail(String email) {
-        return userDao.findByEmail(email).map(this::toDto);
+        return userDao.findByEmail(email);
     }
 
     @Override
     public List<UserDto> findByName(String name) {
-        return userDao.findByName(name).stream()
-                .map(this::toDto)
-                .collect(Collectors.toList());
+        return userDao.findByName(name);
     }
+
+    private static final String UPLOAD_DIR = "uploads/avatars/";
 
     @Override
     public String saveAvatar(int userId, MultipartFile file) throws IOException {
-        User user = userDao.getUserById(userId)
+        UserDto userDto = userDao.getUserById(userId)
                 .orElseThrow(() -> new UserNotFoundException("Пользователь не найден"));
 
-        String uploadDir = "uploads/avatars/";
-        Files.createDirectories(Paths.get(uploadDir));
+        Files.createDirectories(Paths.get(UPLOAD_DIR));
 
         String filename = UUID.randomUUID() + "_" + file.getOriginalFilename();
-        Path path = Paths.get(uploadDir, filename);
+        Path path = Paths.get(UPLOAD_DIR, filename);
         Files.write(path, file.getBytes());
 
-        user.setAvatar(filename);
-        userDao.updateUser(userId, user);
+        userDto.setAvatar(filename);
+        userDao.updateUserFromDto(userId, userDto);
 
         return filename;
     }
 
     @Override
     public ResponseEntity<byte[]> getAvatar(int userId) throws IOException {
-        User user = userDao.getUserById(userId)
+        UserDto userDto = userDao.getUserById(userId)
                 .orElseThrow(() -> new UserNotFoundException("Пользователь не найден"));
 
-        String filename = user.getAvatar();
+        String filename = userDto.getAvatar();
         if (filename == null || filename.isBlank()) {
             return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
         }
 
-        Path path = Paths.get("uploads/avatars", filename);
+        Path path = Paths.get(UPLOAD_DIR, filename);
         byte[] image = Files.readAllBytes(path);
 
         MediaType mediaType = MediaType.APPLICATION_OCTET_STREAM;

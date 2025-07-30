@@ -1,8 +1,11 @@
 package kg.attractor.job_search_java25.service.impl;
 
+import kg.attractor.job_search_java25.dao.CategoryDao;
+import kg.attractor.job_search_java25.dao.UserDao;
 import kg.attractor.job_search_java25.dao.VacancyDao;
 import kg.attractor.job_search_java25.dto.VacancyCreateDto;
 import kg.attractor.job_search_java25.dto.VacancyUpdateDto;
+import kg.attractor.job_search_java25.exceptions.NotFoundException;
 import kg.attractor.job_search_java25.model.Vacancy;
 import kg.attractor.job_search_java25.service.VacancyService;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +20,8 @@ import java.util.Optional;
 public class VacancyServiceImpl implements VacancyService {
 
     private final VacancyDao vacancyDao;
+    private final CategoryDao categoryDao;
+    private final UserDao userDao;
 
     @Override
     public List<Vacancy> getAllActiveVacancies() {
@@ -34,6 +39,14 @@ public class VacancyServiceImpl implements VacancyService {
 
     @Override
     public Vacancy createVacancy(VacancyCreateDto vacancyDto) {
+        if (!categoryDao.existsById(vacancyDto.getCategoryId())) {
+            throw new NotFoundException("Категория с ID " + vacancyDto.getCategoryId() + " не найдена.");
+        }
+
+        if (!userDao.existsById(vacancyDto.getAuthorId())) {
+            throw new NotFoundException("Автор с ID " + vacancyDto.getAuthorId() + " не найден.");
+        }
+
         Vacancy vacancy = new Vacancy();
         vacancy.setName(vacancyDto.getName());
         vacancy.setDescription(vacancyDto.getDescription());
@@ -54,6 +67,10 @@ public class VacancyServiceImpl implements VacancyService {
     public Optional<Vacancy> updateVacancy(int id, VacancyUpdateDto updatedVacancyDto) {
         Optional<Vacancy> optional = getVacancyById(id);
         if (optional.isEmpty()) return Optional.empty();
+
+        if (!categoryDao.existsById(updatedVacancyDto.getCategoryId())) {
+            throw new NotFoundException("Категория с ID " + updatedVacancyDto.getCategoryId() + " не найдена.");
+        }
 
         Vacancy vacancy = optional.get();
         vacancy.setName(updatedVacancyDto.getName());

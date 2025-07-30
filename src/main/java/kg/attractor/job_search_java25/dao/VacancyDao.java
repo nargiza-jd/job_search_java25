@@ -13,7 +13,7 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
+import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
@@ -70,7 +70,11 @@ public class VacancyDao {
             return ps;
         }, keyHolder);
 
-        return Objects.requireNonNull(keyHolder.getKey()).intValue();
+        if (keyHolder.getKeys() != null && keyHolder.getKeys().containsKey("ID")) {
+            return ((Number) keyHolder.getKeys().get("ID")).intValue();
+        } else {
+            throw new RuntimeException("Failed to retrieve generated ID 'ID' for Vacancy.");
+        }
     }
 
     public void update(Vacancy vacancy) {
@@ -95,5 +99,11 @@ public class VacancyDao {
     public void toggleStatus(int id, boolean isActive) {
         String sql = "UPDATE vacancies SET is_active = ?, update_time = CURRENT_TIMESTAMP WHERE id = ?";
         jdbcTemplate.update(sql, isActive, id);
+    }
+
+    public boolean existsById(int id) {
+        String sql = "SELECT COUNT(*) FROM vacancies WHERE id = ?";
+        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, id);
+        return count != null && count > 0;
     }
 }
