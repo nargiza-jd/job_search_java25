@@ -37,8 +37,12 @@ public class UserController {
 
     @PostMapping
     public ResponseEntity<UserDto> createUser(@RequestBody @Valid UserRegistrationDto registrationDto) {
-        UserDto createdUser = userService.createUser(registrationDto);
-        return new ResponseEntity<>(createdUser, HttpStatus.CREATED);
+        try {
+            UserDto createdUser = userService.createUser(registrationDto);
+            return new ResponseEntity<>(createdUser, HttpStatus.CREATED);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(null);
+        }
     }
 
     @PutMapping("/{id}")
@@ -67,7 +71,7 @@ public class UserController {
             return ResponseEntity.ok("Аватар успешно загружен: " + filename);
         } catch (UserNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Пользователь не найден");
-        } catch (Exception e) {
+        } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Ошибка при сохранении файла: " + e.getMessage());
         }
     }

@@ -11,6 +11,7 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Repository;
 
 import java.sql.PreparedStatement;
@@ -26,6 +27,7 @@ public class UserDao {
     private final JdbcTemplate jdbcTemplate;
     private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
     private final UserMapper userMapper;
+    private final PasswordEncoder passwordEncoder;
 
 
     public List<UserDto> getAllUsers() {
@@ -45,6 +47,7 @@ public class UserDao {
     }
 
     public UserDto addUser(UserRegistrationDto registrationDto) {
+
         String sql = "INSERT INTO users (name, surname, age, email, password, phone_number, avatar, account_type) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         KeyHolder keyHolder = new GeneratedKeyHolder();
 
@@ -54,7 +57,7 @@ public class UserDao {
             ps.setString(2, registrationDto.getSurname());
             ps.setObject(3, registrationDto.getAge());
             ps.setString(4, registrationDto.getEmail());
-            ps.setString(5, registrationDto.getPassword());
+            ps.setString(5, passwordEncoder.encode(registrationDto.getPassword()));
             ps.setObject(6, registrationDto.getPhoneNumber());
             ps.setString(7, registrationDto.getAvatar());
             ps.setString(8, registrationDto.getAccountType());
@@ -78,6 +81,7 @@ public class UserDao {
 
     public int updateUser(int id, User user) {
         String sql = "UPDATE users SET name = ?, surname = ?, age = ?, email = ?, password = ?, phone_number = ?, avatar = ?, account_type = ? WHERE id = ?";
+
         return jdbcTemplate.update(sql,
                 user.getName(),
                 user.getSurname(),
@@ -91,13 +95,32 @@ public class UserDao {
         );
     }
 
+    public int updateUserFromDto(int id, UserDto userDto) {
+        String sql = "UPDATE users SET name = ?, surname = ?, age = ?, email = ?, phone_number = ?, avatar = ?, account_type = ? WHERE id = ?";
+        return jdbcTemplate.update(sql,
+                userDto.getName(),
+                userDto.getSurname(),
+                userDto.getAge(),
+                userDto.getEmail(),
+                userDto.getPhoneNumber(),
+                userDto.getAvatar(),
+                userDto.getAccountType(),
+                id
+        );
+    }
+
+    public int updatePassword(int id, String newRawPassword) {
+        String sql = "UPDATE users SET password = ? WHERE id = ?";
+        return jdbcTemplate.update(sql, passwordEncoder.encode(newRawPassword), id);
+    }
+
     public boolean deleteUser(int id) {
         String sql = "DELETE FROM users WHERE id = ?";
         return jdbcTemplate.update(sql, id) > 0;
     }
 
     public List<UserDto> searchApplicants(String query) {
-        String sql = "SELECT * FROM users WHERE account_type = 'applicant' AND (LOWER(name) LIKE :q OR LOWER(email) LIKE :q)"; // account_type в нижнем регистре
+        String sql = "SELECT * FROM users WHERE account_type = 'applicant' AND (LOWER(name) LIKE :q OR LOWER(email) LIKE :q)";
         return namedParameterJdbcTemplate.query(
                 sql,
                 new MapSqlParameterSource("q", "%" + query.toLowerCase() + "%"),
@@ -130,19 +153,5 @@ public class UserDao {
         String sql = "SELECT COUNT(*) FROM users WHERE id = ?";
         Integer count = jdbcTemplate.queryForObject(sql, Integer.class, id);
         return count != null && count > 0;
-    }
-
-    public int updateUserFromDto(int id, UserDto userDto) {
-        String sql = "UPDATE users SET name = ?, surname = ?, age = ?, email = ?, phone_number = ?, avatar = ?, account_type = ? WHERE id = ?";
-        return jdbcTemplate.update(sql,
-                userDto.getName(),
-                userDto.getSurname(),
-                userDto.getAge(),
-                userDto.getEmail(),
-                userDto.getPhoneNumber(),
-                userDto.getAvatar(),
-                userDto.getAccountType(),
-                id
-        );
     }
 }

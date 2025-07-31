@@ -1,10 +1,12 @@
 package kg.attractor.job_search_java25.service.impl;
 
+import kg.attractor.job_search_java25.dao.AuthorityDao;
 import kg.attractor.job_search_java25.dao.UserDao;
 import kg.attractor.job_search_java25.dto.*;
 import kg.attractor.job_search_java25.exceptions.UserNotFoundException;
 import kg.attractor.job_search_java25.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +24,9 @@ import java.util.UUID;
 public class UserServiceImpl implements UserService {
 
     private final UserDao userDao;
+    private final AuthorityDao authorityDao;
+
+    private static final String UPLOAD_DIR = "uploads/avatars/";
 
     @Override
     public List<UserDto> getAllUsers() {
@@ -41,12 +46,18 @@ public class UserServiceImpl implements UserService {
         });
 
         UserDto createdUser = userDao.addUser(dto);
+
+        String roleName = "ROLE_" + dto.getAccountType().toUpperCase();
+        authorityDao.findAuthorityIdByName(roleName)
+                .ifPresentOrElse(
+                        authorityId -> authorityDao.addUserAuthority(createdUser.getId(), authorityId),
+                        () -> System.err.println("Предупреждение: Роль '" + roleName + "' не найдена в базе данных для нового пользователя " + dto.getEmail())
+                );
         return createdUser;
     }
 
     @Override
     public UserDto updateUser(int id, UserProfileUpdateDto dto) {
-
         UserDto existingUserDto = userDao.getUserById(id)
                 .orElseThrow(() -> new UserNotFoundException("Пользователь не найден"));
 
@@ -54,12 +65,10 @@ public class UserServiceImpl implements UserService {
         existingUserDto.setSurname(dto.getSurname());
         existingUserDto.setAge(dto.getAge());
         existingUserDto.setPhoneNumber(dto.getPhoneNumber());
-
         userDao.updateUserFromDto(id, existingUserDto);
 
         return existingUserDto;
     }
-
     @Override
     public boolean deleteUser(int id) {
         return userDao.deleteUser(id);
@@ -85,18 +94,22 @@ public class UserServiceImpl implements UserService {
         return userDao.findByName(name);
     }
 
-    private static final String UPLOAD_DIR = "uploads/avatars/";
-
     @Override
     public String saveAvatar(int userId, MultipartFile file) throws IOException {
         UserDto userDto = userDao.getUserById(userId)
                 .orElseThrow(() -> new UserNotFoundException("Пользователь не найден"));
 
-        Files.createDirectories(Paths.get(UPLOAD_DIR));
+        Path uploadPath = Paths.get(UPLOAD_DIR);
+        Files.createDirectories(uploadPath);
 
-        String filename = UUID.randomUUID() + "_" + file.getOriginalFilename();
-        Path path = Paths.get(UPLOAD_DIR, filename);
-        Files.write(path, file.getBytes());
+        String filename = UUID.randomUUID().toString();
+        String originalFilename = file.getOriginalFilename();
+        if (originalFilename != null && originalFilename.contains(".")) {
+            filename += originalFilename.substring(originalFilename.lastIndexOf("."));
+        }
+
+        Path path = uploadPath.resolve(filename);
+        Files.copy(file.getInputStream(), path, StandardCopyOption.REPLACE_EXISTING);
 
         userDto.setAvatar(filename);
         userDao.updateUserFromDto(userId, userDto);
@@ -115,13 +128,25 @@ public class UserServiceImpl implements UserService {
         }
 
         Path path = Paths.get(UPLOAD_DIR, filename);
+
+        if (!Files.exists(path)) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+
         byte[] image = Files.readAllBytes(path);
 
-        MediaType mediaType = MediaType.APPLICATION_OCTET_STREAM;
-        if (filename.endsWith(".png")) mediaType = MediaType.IMAGE_PNG;
-        else if (filename.endsWith(".jpg") || filename.endsWith(".jpeg")) mediaType = MediaType.IMAGE_JPEG;
-        else if (filename.endsWith(".gif")) mediaType = MediaType.IMAGE_GIF;
+        HttpHeaders headers = new HttpHeaders();
+        String contentType = null;
+        try {
+            contentType = Files.probeContentType(path);
+        } catch (IOException e) {
+        }
+        if (contentType == null) {
+            contentType = MediaType.APPLICATION_OCTET_STREAM_VALUE;
+        }
+        headers.setContentType(MediaType.parseMediaType(contentType));
+        headers.setContentLength(image.length);
 
-        return ResponseEntity.ok().contentType(mediaType).body(image);
+        return new ResponseEntity<>(image, headers, HttpStatus.OK);
     }
 }
