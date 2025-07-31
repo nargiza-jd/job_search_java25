@@ -1,0 +1,64 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-authorities-table
+      author: nargiza
+      preConditions:
+        - not:
+            - tableExists:
+                tableName: authorities
+      changes:
+        - createTable:
+            tableName: authorities
+            columns:
+              - column:
+                  name: id
+                  type: INT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: name
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+                    unique: true
+
+  - changeSet:
+      id: create-user-authorities-table
+      author: nargiza
+      preConditions:
+        - not:
+            - tableExists:
+                tableName: user_authorities
+      changes:
+        - createTable:
+            tableName: user_authorities
+            columns:
+              - column:
+                  name: user_id
+                  type: INT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: authority_id
+                  type: INT
+                  constraints:
+                    nullable: false
+        - addPrimaryKey:
+            tableName: user_authorities
+            columnNames: user_id, authority_id
+        - addForeignKeyConstraint:
+            baseTableName: user_authorities
+            baseColumnNames: user_id
+            referencedTableName: users
+            referencedColumnNames: id
+            constraintName: fk_user_authorities_user
+            onDelete: CASCADE
+        - addForeignKeyConstraint:
+            baseTableName: user_authorities
+            baseColumnNames: authority_id
+            referencedTableName: authorities
+            referencedColumnNames: id
+            constraintName: fk_user_authorities_authority
+            onDelete: CASCADE
