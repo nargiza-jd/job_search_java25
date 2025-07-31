@@ -3581,3 +3581,15 @@ Caused by: java.lang.NumberFormatException: For input string: "add"
 2025-08-01 00:50:15 DEBUG o.s.s.w.a.AnonymousAuthenticationFilter - Set SecurityContextHolder to anonymous SecurityContext
 2025-08-01 00:50:15 DEBUG o.s.s.w.s.HttpSessionRequestCache - Saved request http://localhost:8089/api/resumes?continue to session
 2025-08-01 00:50:15 DEBUG o.s.s.web.DefaultRedirectStrategy - Redirecting to http://localhost:8089/login
+2025-08-01 00:53:44 DEBUG o.s.security.web.FilterChainProxy - Securing OPTIONS /api/resumes
+2025-08-01 00:53:44 DEBUG o.s.s.w.a.AnonymousAuthenticationFilter - Set SecurityContextHolder to anonymous SecurityContext
+2025-08-01 00:53:44 DEBUG o.s.s.w.s.HttpSessionRequestCache - Saved request http://localhost:8089/api/resumes?continue to session
+2025-08-01 00:53:44 DEBUG o.s.s.web.DefaultRedirectStrategy - Redirecting to http://localhost:8089/login
+2025-08-01 00:53:44 DEBUG o.s.security.web.FilterChainProxy - Securing GET /api/resumes
+2025-08-01 00:53:44 DEBUG o.s.s.w.a.AnonymousAuthenticationFilter - Set SecurityContextHolder to anonymous SecurityContext
+2025-08-01 00:53:44 DEBUG o.s.s.w.s.HttpSessionRequestCache - Saved request http://localhost:8089/api/resumes?continue to session
+2025-08-01 00:53:44 DEBUG o.s.s.web.DefaultRedirectStrategy - Redirecting to http://localhost:8089/login
+2025-08-01 00:57:54 INFO  o.s.b.w.e.tomcat.GracefulShutdown - Commencing graceful shutdown. Waiting for active requests to complete
+2025-08-01 00:57:54 INFO  o.s.b.w.e.tomcat.GracefulShutdown - Graceful shutdown complete
+2025-08-01 00:57:54 INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...
+2025-08-01 00:57:54 INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.
