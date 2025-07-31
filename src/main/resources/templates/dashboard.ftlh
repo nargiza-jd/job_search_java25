@@ -8,7 +8,9 @@
 <body>
 <h1>Добро пожаловать на панель управления!</h1>
 
-<p>Вы вошли как ${springMacroRequestContext.request.userPrincipal.name}</p>
+<h2>Привет, ${username}!</h2>
+
+
 
 <form action="/logout" method="post">
     <input type="submit" value="Выйти"/>

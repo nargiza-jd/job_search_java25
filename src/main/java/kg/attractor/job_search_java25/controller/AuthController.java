@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import jakarta.validation.Valid;
 
+import java.security.Principal;
+
 @Controller
 @RequiredArgsConstructor
 public class AuthController {
@@ -55,7 +57,8 @@ public class AuthController {
     }
 
     @GetMapping("/dashboard")
-    public String showDashboard() {
+    public String showDashboard(Model model, Principal principal) {
+        model.addAttribute("username", principal.getName());
         return "dashboard";
     }
 
