@@ -27,7 +27,7 @@ databaseChangeLog:
               - column: { name: surname, value: 'Айтмат' }
               - column: { name: age, value: 30 }
               - column: { name: email, value: 'test@example.com' }
-              - column: { name: password, value: '$2a$10$ВашХешПароляДляPassword123' }
+              - column: { name: password, value: '$2a$10$MkBr..cVhbtNA68OIaCZmeF5/Wz//hmaXT5sKwVU8PQZLsoGBNjYu' }
               - column: { name: phone_number, value: '1234567890' }
               - column: { name: account_type, value: 'APPLICANT' }
         - insert:

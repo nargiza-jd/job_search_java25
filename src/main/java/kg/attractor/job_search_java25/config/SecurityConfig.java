@@ -1,26 +1,28 @@
 package kg.attractor.job_search_java25.config;
 
+import kg.attractor.job_search_java25.dao.UserDao;
+import kg.attractor.job_search_java25.model.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import java.util.List;
 
-import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
-
-import javax.sql.DataSource;
 
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final DataSource dataSource;
+    private final UserDao userDao;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -28,51 +30,53 @@ public class SecurityConfig {
     }
 
     @Bean
-    public AuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
-
-        authProvider.setUserDetailsService(jdbcUserDetailsManager());
-        authProvider.setPasswordEncoder(passwordEncoder());
-        return authProvider;
+    public DaoAuthenticationProvider daoAuthenticationProvider() {
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+        provider.setPasswordEncoder(passwordEncoder());
+        provider.setUserDetailsService(userDetailsService());
+        return provider;
     }
 
     @Bean
-    public org.springframework.security.provisioning.JdbcUserDetailsManager jdbcUserDetailsManager() {
-        org.springframework.security.provisioning.JdbcUserDetailsManager jdbcManager =
-                new org.springframework.security.provisioning.JdbcUserDetailsManager(dataSource);
+    public UserDetailsService userDetailsService() {
+        return email -> {
+            User user = userDao.findByEmail(email)
+                    .orElseThrow(() -> new UsernameNotFoundException("Пользователь с email " + email + " не найден."));
 
-        jdbcManager.setUsersByUsernameQuery("SELECT email, password, true FROM users WHERE email = ?");
-        jdbcManager.setAuthoritiesByUsernameQuery("SELECT u.email, a.name FROM users u JOIN user_authorities ua ON u.id = ua.user_id JOIN authorities a ON ua.authority_id = a.id WHERE u.email = ?");
+            List<SimpleGrantedAuthority> authorities = List.of(
+                    new SimpleGrantedAuthority("ROLE_" + user.getAccountType().toUpperCase())
+            );
 
-        return jdbcManager;
+            return new org.springframework.security.core.userdetails.User(
+                    user.getEmail(),
+                    user.getPassword(),
+                    authorities
+            );
+        };
     }
-
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll()
-
                         .requestMatchers(
+                                "/css/**", "/js/**", "/images/**", "/uploads/**",
                                 "/search",
                                 "/greet",
                                 "/register",
                                 "/users/search/**",
-                                "/users/{userId}/avatar"
+                                "/users/{userId}/avatar/**"
                         ).permitAll()
-
                         .anyRequest().authenticated()
                 )
-                .formLogin(formLogin -> formLogin
+                .formLogin(form -> form
                         .loginPage("/login")
-                        .permitAll()
                         .defaultSuccessUrl("/dashboard", true)
                         .failureUrl("/login?error")
+                        .permitAll()
                 )
                 .logout(logout -> logout
-
                         .logoutUrl("/logout")
                         .logoutSuccessUrl("/login?logout")
                         .permitAll()

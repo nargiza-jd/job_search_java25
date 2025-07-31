@@ -31,9 +31,10 @@ public class ResumeServiceImpl implements ResumeService {
             throw new NotFoundException("Категория с ID " + dto.getCategoryId() + " не найдена.");
         }
 
-        if (!userDao.existsById(dto.getApplicantId())) {
+        if (userDao.findById(dto.getApplicantId()).isEmpty()) {
             throw new NotFoundException("Заявитель с ID " + dto.getApplicantId() + " не найден.");
         }
+
         Resume resume = new Resume();
         resume.setName(dto.getName());
         resume.setCategoryId(dto.getCategoryId());

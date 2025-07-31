@@ -43,7 +43,7 @@ public class VacancyServiceImpl implements VacancyService {
             throw new NotFoundException("Категория с ID " + vacancyDto.getCategoryId() + " не найдена.");
         }
 
-        if (!userDao.existsById(vacancyDto.getAuthorId())) {
+        if (userDao.findById(vacancyDto.getAuthorId()).isEmpty()) {
             throw new NotFoundException("Автор с ID " + vacancyDto.getAuthorId() + " не найден.");
         }
 
