@@ -18,7 +18,6 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import java.util.List;
 
-
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
@@ -74,6 +73,7 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
+                                "/favicon.ico",
                                 "/css/**",
                                 "/js/**",
                                 "/images/**",
@@ -83,7 +83,6 @@ public class SecurityConfig {
                                 "/search",
                                 "/greet"
                         ).permitAll()
-
                         .requestMatchers("/auth/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/vacancies/**", "/resumes/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/resumes/**").hasRole("APPLICANT")
