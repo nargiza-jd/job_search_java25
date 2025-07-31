@@ -10,12 +10,14 @@ import kg.attractor.job_search_java25.service.RespondedApplicantService;
 import kg.attractor.job_search_java25.service.ResumeService;
 import kg.attractor.job_search_java25.service.VacancyService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class RespondedApplicantServiceImpl implements RespondedApplicantService {
 
     private final RespondedApplicantDao respondedApplicantDao;

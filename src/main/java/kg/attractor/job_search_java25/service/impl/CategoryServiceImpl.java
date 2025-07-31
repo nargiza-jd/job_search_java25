@@ -6,6 +6,7 @@ import kg.attractor.job_search_java25.exceptions.NotFoundException;
 import kg.attractor.job_search_java25.model.Category;
 import kg.attractor.job_search_java25.service.CategoryService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -13,6 +14,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class CategoryServiceImpl implements CategoryService {
 
     private final CategoryDao categoryDao;

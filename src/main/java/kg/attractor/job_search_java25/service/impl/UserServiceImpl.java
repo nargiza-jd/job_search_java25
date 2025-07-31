@@ -7,6 +7,7 @@ import kg.attractor.job_search_java25.exceptions.UserNotFoundException;
 import kg.attractor.job_search_java25.model.User;
 import kg.attractor.job_search_java25.service.UserService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -24,6 +25,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class UserServiceImpl implements UserService {
 
     private final UserDao userDao;

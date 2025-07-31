@@ -8,6 +8,7 @@ import kg.attractor.job_search_java25.model.Resume;
 import kg.attractor.job_search_java25.model.WorkExperienceInfo;
 import kg.attractor.job_search_java25.service.ResumeService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import kg.attractor.job_search_java25.model.EducationInfo;
 
@@ -17,6 +18,7 @@ import java.util.Optional;
 
 @RequiredArgsConstructor
 @Service
+@Slf4j
 public class ResumeServiceImpl implements ResumeService {
 
     private final ResumeDao resumeDao;

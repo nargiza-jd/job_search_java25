@@ -9,6 +9,7 @@ import kg.attractor.job_search_java25.exceptions.NotFoundException;
 import kg.attractor.job_search_java25.model.Vacancy;
 import kg.attractor.job_search_java25.service.VacancyService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -17,6 +18,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class VacancyServiceImpl implements VacancyService {
 
     private final VacancyDao vacancyDao;
