@@ -1,16 +1,20 @@
 package kg.attractor.job_search_java25.service.impl;
 
+import kg.attractor.job_search_java25.dao.AuthorityDao;
 import kg.attractor.job_search_java25.dao.UserDao;
 import kg.attractor.job_search_java25.dto.*;
 import kg.attractor.job_search_java25.exceptions.UserNotFoundException;
 import kg.attractor.job_search_java25.model.User;
 import kg.attractor.job_search_java25.service.UserService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.io.IOException;
 import java.nio.file.*;
@@ -21,138 +25,176 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class UserServiceImpl implements UserService {
 
     private final UserDao userDao;
+    private final AuthorityDao authorityDao;
+    private final PasswordEncoder passwordEncoder;
 
-    private UserDto toDto(User user) {
-        UserDto dto = new UserDto();
-        dto.setId(user.getId());
-        dto.setName(user.getName());
-        dto.setSurname(user.getSurname());
-        dto.setAge(user.getAge());
-        dto.setEmail(user.getEmail());
-        dto.setPhoneNumber(user.getPhoneNumber());
-        dto.setAvatar(user.getAvatar());
-        dto.setAccountType(user.getAccountType());
-        return dto;
-    }
+    private static final String UPLOAD_DIR = "uploads/avatars/";
 
-    private User fromRegistrationDto(UserRegistrationDto dto) {
-        User user = new User();
-        user.setEmail(dto.getEmail());
-        user.setPassword(dto.getPassword());
-        user.setName(dto.getName());
-        user.setAccountType(dto.getAccountType());
-        return user;
+    private UserDto convertToDto(User user) {
+        if (user == null) {
+            return null;
+        }
+        return UserDto.builder()
+                .id(user.getId())
+                .name(user.getName())
+                .surname(user.getSurname())
+                .age(user.getAge())
+                .email(user.getEmail())
+                .phoneNumber(user.getPhoneNumber())
+                .avatar(user.getAvatar())
+                .accountType(user.getAccountType())
+                .build();
     }
 
     @Override
     public List<UserDto> getAllUsers() {
         return userDao.getAllUsers().stream()
-                .map(this::toDto)
+                .map(this::convertToDto)
                 .collect(Collectors.toList());
     }
 
     @Override
     public UserDto getUserById(int id) {
-        User user = userDao.getUserById(id)
+        return userDao.findById(id)
+                .map(this::convertToDto)
                 .orElseThrow(() -> new UserNotFoundException("Пользователь с ID " + id + " не найден"));
-        return toDto(user);
     }
 
     @Override
     public UserDto createUser(UserRegistrationDto dto) {
-        userDao.findByEmail(dto.getEmail()).ifPresent(existing -> {
+        userDao.findByEmail(dto.getEmail()).ifPresent(existingUser -> {
             throw new IllegalArgumentException("Email '" + dto.getEmail() + "' уже существует");
         });
 
-        User user = fromRegistrationDto(dto);
-        int id = userDao.addUser(user);
-        return getUserById(id);
+        User newUser = new User();
+        newUser.setName(dto.getName());
+        newUser.setSurname(dto.getSurname());
+        newUser.setAge(dto.getAge());
+        newUser.setEmail(dto.getEmail());
+        newUser.setPassword(passwordEncoder.encode(dto.getPassword()));
+        newUser.setPhoneNumber(dto.getPhoneNumber());
+        newUser.setAvatar(null);
+        newUser.setAccountType(dto.getAccountType());
+
+        User createdUserModel = userDao.saveUser(newUser);
+        UserDto createdUserDto = convertToDto(createdUserModel);
+
+        String roleName = "ROLE_" + dto.getAccountType().toUpperCase();
+        authorityDao.findAuthorityIdByName(roleName)
+                .ifPresentOrElse(
+                        authorityId -> authorityDao.addUserAuthority(createdUserDto.getId(), authorityId),
+                        () -> System.err.println("Предупреждение: Роль '" + roleName + "' не найдена в базе данных для нового пользователя " + dto.getEmail())
+                );
+        return createdUserDto;
     }
 
     @Override
     public UserDto updateUser(int id, UserProfileUpdateDto dto) {
-        User existing = userDao.getUserById(id)
+        User existingUserModel = userDao.findById(id)
                 .orElseThrow(() -> new UserNotFoundException("Пользователь не найден"));
 
-        existing.setName(dto.getName());
-        existing.setSurname(dto.getSurname());
-        existing.setAge(dto.getAge());
-        existing.setPhoneNumber(dto.getPhoneNumber());
+        existingUserModel.setName(dto.getName());
+        existingUserModel.setSurname(dto.getSurname());
+        existingUserModel.setAge(dto.getAge());
+        existingUserModel.setPhoneNumber(dto.getPhoneNumber());
 
-        userDao.updateUser(id, existing);
-        return toDto(existing);
+        if (dto.getPassword() != null && !dto.getPassword().isBlank()) {
+            existingUserModel.setPassword(passwordEncoder.encode(dto.getPassword()));
+        }
+
+        User updatedUserModel = userDao.updateUser(existingUserModel);
+        return convertToDto(updatedUserModel);
     }
 
     @Override
     public boolean deleteUser(int id) {
-        return userDao.deleteUser(id) > 0;
+        return userDao.deleteUser(id);
     }
 
     @Override
     public List<UserDto> searchApplicants(String query) {
         return userDao.searchApplicants(query).stream()
-                .map(this::toDto)
+                .map(this::convertToDto)
                 .collect(Collectors.toList());
     }
 
     @Override
     public List<UserDto> findByPhoneNumber(String phoneNumber) {
         return userDao.findByPhoneNumber(phoneNumber).stream()
-                .map(this::toDto)
+                .map(this::convertToDto)
                 .collect(Collectors.toList());
     }
 
     @Override
     public Optional<UserDto> findByEmail(String email) {
-        return userDao.findByEmail(email).map(this::toDto);
+        return userDao.findByEmail(email)
+                .map(this::convertToDto);
     }
 
     @Override
     public List<UserDto> findByName(String name) {
         return userDao.findByName(name).stream()
-                .map(this::toDto)
+                .map(this::convertToDto)
                 .collect(Collectors.toList());
     }
 
     @Override
     public String saveAvatar(int userId, MultipartFile file) throws IOException {
-        User user = userDao.getUserById(userId)
-                .orElseThrow(() -> new UserNotFoundException("Пользователь не найден"));
+        User existingUser = userDao.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("Пользователь не найден для обновления аватара."));
 
-        String uploadDir = "uploads/avatars/";
-        Files.createDirectories(Paths.get(uploadDir));
+        Path uploadPath = Paths.get(UPLOAD_DIR);
+        Files.createDirectories(uploadPath);
 
-        String filename = UUID.randomUUID() + "_" + file.getOriginalFilename();
-        Path path = Paths.get(uploadDir, filename);
-        Files.write(path, file.getBytes());
+        String filename = UUID.randomUUID().toString();
+        String originalFilename = file.getOriginalFilename();
+        if (originalFilename != null && originalFilename.contains(".")) {
+            filename += originalFilename.substring(originalFilename.lastIndexOf("."));
+        }
 
-        user.setAvatar(filename);
-        userDao.updateUser(userId, user);
+        Path path = uploadPath.resolve(filename);
+        Files.copy(file.getInputStream(), path, StandardCopyOption.REPLACE_EXISTING);
+
+        existingUser.setAvatar(filename);
+        userDao.updateUser(existingUser);
 
         return filename;
     }
 
     @Override
     public ResponseEntity<byte[]> getAvatar(int userId) throws IOException {
-        User user = userDao.getUserById(userId)
-                .orElseThrow(() -> new UserNotFoundException("Пользователь не найден"));
+        UserDto userDto = getUserById(userId);
 
-        String filename = user.getAvatar();
+        String filename = userDto.getAvatar();
         if (filename == null || filename.isBlank()) {
             return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
         }
 
-        Path path = Paths.get("uploads/avatars", filename);
+        Path path = Paths.get(UPLOAD_DIR, filename);
+
+        if (!Files.exists(path)) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+
         byte[] image = Files.readAllBytes(path);
 
-        MediaType mediaType = MediaType.APPLICATION_OCTET_STREAM;
-        if (filename.endsWith(".png")) mediaType = MediaType.IMAGE_PNG;
-        else if (filename.endsWith(".jpg") || filename.endsWith(".jpeg")) mediaType = MediaType.IMAGE_JPEG;
-        else if (filename.endsWith(".gif")) mediaType = MediaType.IMAGE_GIF;
+        HttpHeaders headers = new HttpHeaders();
+        String contentType = null;
+        try {
+            contentType = Files.probeContentType(path);
+        } catch (IOException e) {
+            System.err.println("Error probing content type for " + filename + ": " + e.getMessage());
+        }
+        if (contentType == null) {
+            contentType = MediaType.APPLICATION_OCTET_STREAM_VALUE;
+        }
+        headers.setContentType(MediaType.parseMediaType(contentType));
+        headers.setContentLength(image.length);
 
-        return ResponseEntity.ok().contentType(mediaType).body(image);
+        return new ResponseEntity<>(image, headers, HttpStatus.OK);
     }
 }

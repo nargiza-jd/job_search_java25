@@ -1,5 +1,6 @@
 package kg.attractor.job_search_java25.controller;
 
+import jakarta.validation.Valid;
 import kg.attractor.job_search_java25.dto.*;
 import kg.attractor.job_search_java25.exceptions.UserNotFoundException;
 import kg.attractor.job_search_java25.service.UserService;
@@ -35,13 +36,17 @@ public class UserController {
     }
 
     @PostMapping
-    public ResponseEntity<UserDto> createUser(@RequestBody UserRegistrationDto registrationDto) {
-        UserDto createdUser = userService.createUser(registrationDto);
-        return new ResponseEntity<>(createdUser, HttpStatus.CREATED);
+    public ResponseEntity<UserDto> createUser(@RequestBody @Valid UserRegistrationDto registrationDto) {
+        try {
+            UserDto createdUser = userService.createUser(registrationDto);
+            return new ResponseEntity<>(createdUser, HttpStatus.CREATED);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(null);
+        }
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<UserDto> updateUser(@PathVariable int id, @RequestBody UserProfileUpdateDto updateDto) {
+    public ResponseEntity<UserDto> updateUser(@PathVariable int id, @RequestBody @Valid UserProfileUpdateDto updateDto) {
         try {
             UserDto updatedUser = userService.updateUser(id, updateDto);
             return ResponseEntity.ok(updatedUser);
@@ -66,7 +71,7 @@ public class UserController {
             return ResponseEntity.ok("Аватар успешно загружен: " + filename);
         } catch (UserNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Пользователь не найден");
-        } catch (Exception e) {
+        } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Ошибка при сохранении файла: " + e.getMessage());
         }
     }

@@ -12,5 +12,29 @@ spring:
 
   liquibase:
     change-log: classpath:/db/changelog/master.yaml
+
+  freemarker:
+    allow-request-override: true
+    allow-session-override: true
+    cache: false
+    check-template-location: true
+    suffix: .ftlh
+    template-loader-path: classpath:/templates/
+    expose-request-attributes: true
+    expose-session-attributes: true
+    expose-spring-macro-helpers: true
+
+
 server:
   port: 8089
+
+logging:
+  level:
+    root: info
+    org:
+      springframework:
+        security: debug
+  pattern:
+    file: '%d{yyyy-MM-dd HH:mm:ss} %-5level %logger{36} - %msg%n'
+  file:
+    path: logs

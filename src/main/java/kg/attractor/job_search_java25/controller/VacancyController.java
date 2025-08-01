@@ -1,5 +1,6 @@
 package kg.attractor.job_search_java25.controller;
 
+import jakarta.validation.Valid;
 import kg.attractor.job_search_java25.dto.VacancyCreateDto;
 import kg.attractor.job_search_java25.dto.VacancyUpdateDto;
 import kg.attractor.job_search_java25.model.Vacancy;
@@ -32,13 +33,13 @@ public class VacancyController {
     }
 
     @PostMapping
-    public ResponseEntity<Vacancy> create(@RequestBody VacancyCreateDto dto) {
+    public ResponseEntity<Vacancy> create(@RequestBody @Valid VacancyCreateDto dto) {
         Vacancy created = vacancyService.createVacancy(dto);
         return ResponseEntity.status(201).body(created);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Vacancy> update(@PathVariable int id, @RequestBody VacancyUpdateDto dto) {
+    public ResponseEntity<Vacancy> update(@PathVariable int id, @RequestBody @Valid VacancyUpdateDto dto) {
         return vacancyService.updateVacancy(id, dto)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());

@@ -1,15 +1,15 @@
 package kg.attractor.job_search_java25.service.impl;
 
-import kg.attractor.job_search_java25.dao.ResumeDao;
+import kg.attractor.job_search_java25.dao.*;
 import kg.attractor.job_search_java25.dto.ResumeCreateDto;
 import kg.attractor.job_search_java25.dto.ResumeUpdateDto;
+import kg.attractor.job_search_java25.exceptions.NotFoundException;
 import kg.attractor.job_search_java25.model.Resume;
 import kg.attractor.job_search_java25.model.WorkExperienceInfo;
 import kg.attractor.job_search_java25.service.ResumeService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import kg.attractor.job_search_java25.dao.EducationInfoDao;
-import kg.attractor.job_search_java25.dao.WorkExperienceInfoDao;
 import kg.attractor.job_search_java25.model.EducationInfo;
 
 import java.time.LocalDateTime;
@@ -18,14 +18,29 @@ import java.util.Optional;
 
 @RequiredArgsConstructor
 @Service
+@Slf4j
 public class ResumeServiceImpl implements ResumeService {
 
     private final ResumeDao resumeDao;
     private final EducationInfoDao educationDao;
     private final WorkExperienceInfoDao workDao;
+    private final CategoryDao categoryDao;
+    private final UserDao userDao;
 
     @Override
     public Resume createResume(ResumeCreateDto dto) {
+        log.info("Создание нового резюме для заявителя с ID: {}", dto.getApplicantId());
+
+        if (!categoryDao.existsById(dto.getCategoryId())) {
+            log.warn("Попытка создать резюме с несуществующей категорией ID: {}", dto.getCategoryId());
+            throw new NotFoundException("Категория с ID " + dto.getCategoryId() + " не найдена.");
+        }
+
+        if (userDao.findById(dto.getApplicantId()).isEmpty()) {
+            log.warn("Попытка создать резюме для несуществующего заявителя с ID: {}", dto.getApplicantId());
+            throw new NotFoundException("Заявитель с ID " + dto.getApplicantId() + " не найден.");
+        }
+
         Resume resume = new Resume();
         resume.setName(dto.getName());
         resume.setCategoryId(dto.getCategoryId());
@@ -36,6 +51,7 @@ public class ResumeServiceImpl implements ResumeService {
         resume.setUpdateTime(LocalDateTime.now());
 
         Resume savedResume = resumeDao.save(resume);
+        log.info("Резюме с ID: {} успешно создано.", savedResume.getId());
 
         if (dto.getEducationList() != null && !dto.getEducationList().isEmpty()) {
             List<EducationInfo> educationList = dto.getEducationList().stream().map(e -> {
@@ -69,9 +85,16 @@ public class ResumeServiceImpl implements ResumeService {
 
     @Override
     public Optional<Resume> updateResume(int id, ResumeUpdateDto dto) {
+        log.info("Обновление резюме с ID: {}", id);
         Optional<Resume> optional = resumeDao.getById(id);
         if (optional.isEmpty()) {
+            log.warn("Попытка обновить несуществующее резюме с ID: {}", id);
             return Optional.empty();
+        }
+
+        if (!categoryDao.existsById(dto.getCategoryId())) {
+            log.warn("Попытка обновить резюме с ID: {} с несуществующей категорией ID: {}", id, dto.getCategoryId());
+            throw new NotFoundException("Категория с ID " + dto.getCategoryId() + " не найдена.");
         }
 
         Resume resume = optional.get();
@@ -81,12 +104,20 @@ public class ResumeServiceImpl implements ResumeService {
         resume.setActive(dto.isActive());
 
         resumeDao.update(id, resume);
+        log.info("Резюме с ID: {} успешно обновлено.", id);
         return resumeDao.getById(id);
     }
 
     @Override
     public boolean deleteResume(int id) {
-        return resumeDao.delete(id);
+        log.info("Попытка удаления резюме с ID: {}", id);
+        boolean isDeleted = resumeDao.delete(id);
+        if (isDeleted) {
+            log.info("Резюме с ID: {} успешно удалено.", id);
+        } else {
+            log.warn("Попытка удаления несуществующего резюме с ID: {}", id);
+        }
+        return isDeleted;
     }
 
     @Override

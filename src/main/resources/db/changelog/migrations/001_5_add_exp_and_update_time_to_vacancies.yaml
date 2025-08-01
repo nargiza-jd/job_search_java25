@@ -1,0 +1,29 @@
+databaseChangeLog:
+  - changeSet:
+      id: add-exp-and-update-time-to-vacancies
+      author: nargiza
+      preConditions:
+        - not:
+            - columnExists:
+                tableName: vacancies
+                columnName: exp_from
+      changes:
+        - addColumn:
+            tableName: vacancies
+            columns:
+              - column:
+                  name: exp_from
+                  type: INT
+                  constraints:
+                    nullable: true
+              - column:
+                  name: exp_to
+                  type: INT
+                  constraints:
+                    nullable: true
+              - column:
+                  name: update_time
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false

@@ -1,90 +1,65 @@
 package kg.attractor.job_search_java25.dao;
 
-import kg.attractor.job_search_java25.dao.mappers.UserMapper;
+import kg.attractor.job_search_java25.dao.mappers.UserEntityMapper;
 import kg.attractor.job_search_java25.model.User;
 import lombok.RequiredArgsConstructor;
-import org.springframework.dao.support.DataAccessUtils;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import org.springframework.jdbc.support.GeneratedKeyHolder;
-import org.springframework.jdbc.support.KeyHolder;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 
-import java.sql.PreparedStatement;
-import java.sql.Statement;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
-@Component
+@Repository
 @RequiredArgsConstructor
 public class UserDao {
+
     private final JdbcTemplate jdbcTemplate;
-    private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
-    private final KeyHolder keyHolder = new GeneratedKeyHolder();
+    private final UserEntityMapper userEntityMapper;
 
     public List<User> getAllUsers() {
-        String sql = "SELECT * FROM users";
-        return jdbcTemplate.query(sql, (rs, rowNum) -> {
-            User user = new User();
-            user.setId(rs.getInt("id"));
-            user.setName(rs.getString("name"));
-            user.setSurname(rs.getString("surname"));
-            user.setAge(rs.getInt("age"));
-            user.setEmail(rs.getString("email"));
-            user.setPassword(rs.getString("password"));
-            user.setPhoneNumber(rs.getString("phone_number"));
-            user.setAvatar(rs.getString("avatar"));
-            user.setAccountType(rs.getString("account_type"));
-            return user;
-        });
+        String sql = "SELECT id, name, surname, age, email, password, phone_number, avatar, account_type FROM users";
+        return jdbcTemplate.query(sql, userEntityMapper);
     }
 
-    public Optional<User> getUserById(int id) {
-        String sql = "SELECT * FROM users WHERE id = ?";
-        return Optional.ofNullable(
-                DataAccessUtils.singleResult(
-                        jdbcTemplate.query(sql, (rs, rowNum) -> {
-                            User user = new User();
-                            user.setId(rs.getInt("id"));
-                            user.setName(rs.getString("name"));
-                            user.setSurname(rs.getString("surname"));
-                            user.setAge(rs.getInt("age"));
-                            user.setEmail(rs.getString("email"));
-                            user.setPassword(rs.getString("password"));
-                            user.setPhoneNumber(rs.getString("phone_number"));
-                            user.setAvatar(rs.getString("avatar"));
-                            user.setAccountType(rs.getString("account_type"));
-                            return user;
-                        }, id)
-                )
-        );
+    public Optional<User> findById(int id) {
+        String sql = "SELECT id, name, surname, age, email, password, phone_number, avatar, account_type FROM users WHERE id = ?";
+        try {
+            return Optional.ofNullable(jdbcTemplate.queryForObject(sql, userEntityMapper, id));
+        } catch (EmptyResultDataAccessException e) {
+            return Optional.empty();
+        }
     }
 
-    public int addUser(User user) {
+    public Optional<User> findByEmail(String email) {
+        String sql = "SELECT id, name, surname, age, email, password, phone_number, avatar, account_type FROM users WHERE email = ?";
+        try {
+            return Optional.ofNullable(jdbcTemplate.queryForObject(sql, userEntityMapper, email));
+        } catch (EmptyResultDataAccessException e) {
+            return Optional.empty();
+        }
+    }
+
+    public User saveUser(User user) {
         String sql = "INSERT INTO users (name, surname, age, email, password, phone_number, avatar, account_type) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-        KeyHolder keyHolder = new GeneratedKeyHolder();
+        jdbcTemplate.update(sql,
+                user.getName(),
+                user.getSurname(),
+                user.getAge(),
+                user.getEmail(),
+                user.getPassword(),
+                user.getPhoneNumber(),
+                user.getAvatar(),
+                user.getAccountType());
 
-        jdbcTemplate.update(con -> {
-            PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-            ps.setString(1, user.getName());
-            ps.setString(2, user.getSurname());
-            ps.setInt(3, user.getAge());
-            ps.setString(4, user.getEmail());
-            ps.setString(5, user.getPassword());
-            ps.setString(6, user.getPhoneNumber());
-            ps.setString(7, user.getAvatar());
-            ps.setString(8, user.getAccountType());
-            return ps;
-        }, keyHolder);
-
-        return Objects.requireNonNull(keyHolder.getKey()).intValue();
+        User savedUser = findByEmail(user.getEmail())
+                .orElseThrow(() -> new RuntimeException("Не удалось найти сохраненного пользователя по email!"));
+        return savedUser;
     }
 
-    public int updateUser(int id, User user) {
+    public User updateUser(User user) {
         String sql = "UPDATE users SET name = ?, surname = ?, age = ?, email = ?, password = ?, phone_number = ?, avatar = ?, account_type = ? WHERE id = ?";
-        return jdbcTemplate.update(sql,
+        jdbcTemplate.update(sql,
                 user.getName(),
                 user.getSurname(),
                 user.getAge(),
@@ -93,52 +68,29 @@ public class UserDao {
                 user.getPhoneNumber(),
                 user.getAvatar(),
                 user.getAccountType(),
-                id
-        );
+                user.getId());
+        return user;
     }
 
-    public int deleteUser(int id) {
+    public boolean deleteUser(int id) {
         String sql = "DELETE FROM users WHERE id = ?";
-        return jdbcTemplate.update(sql, id);
+        return jdbcTemplate.update(sql, id) > 0;
     }
 
     public List<User> searchApplicants(String query) {
-        String sql = "SELECT * FROM users WHERE account_type = 'APPLICANT' AND (LOWER(name) LIKE :q OR LOWER(email) LIKE :q)";
-        return namedParameterJdbcTemplate.query(
-                sql,
-                new MapSqlParameterSource("q", "%" + query.toLowerCase() + "%"),
-                (rs, rowNum) -> {
-                    User user = new User();
-                    user.setId(rs.getInt("id"));
-                    user.setName(rs.getString("name"));
-                    user.setSurname(rs.getString("surname"));
-                    user.setAge(rs.getInt("age"));
-                    user.setEmail(rs.getString("email"));
-                    user.setPassword(rs.getString("password"));
-                    user.setPhoneNumber(rs.getString("phone_number"));
-                    user.setAvatar(rs.getString("avatar"));
-                    user.setAccountType(rs.getString("account_type"));
-                    return user;
-                }
-        );
+        String sql = "SELECT id, name, surname, age, email, password, phone_number, avatar, account_type FROM users " +
+                "WHERE account_type = 'APPLICANT' AND (name ILIKE ? OR surname ILIKE ? OR email ILIKE ?)";
+        String likeQuery = "%" + query + "%";
+        return jdbcTemplate.query(sql, userEntityMapper, likeQuery, likeQuery, likeQuery);
     }
 
     public List<User> findByPhoneNumber(String phoneNumber) {
-        String sql = "SELECT * FROM users WHERE phone_number LIKE ?";
-        return jdbcTemplate.query(sql, new UserMapper(), "%" + phoneNumber + "%");
-    }
-
-    public Optional<User> findByEmail(String email) {
-        String sql = "SELECT * FROM users WHERE email = ?";
-        return Optional.ofNullable(
-                DataAccessUtils.singleResult(
-                        jdbcTemplate.query(sql, new UserMapper(), email)
-                )
-        );
+        String sql = "SELECT id, name, surname, age, email, password, phone_number, avatar, account_type FROM users WHERE phone_number = ?";
+        return jdbcTemplate.query(sql, userEntityMapper, phoneNumber);
     }
 
     public List<User> findByName(String name) {
-        String sql = "SELECT * FROM users WHERE LOWER(name) LIKE ?";
-        return jdbcTemplate.query(sql, new UserMapper(), "%" + name.toLowerCase() + "%");
+        String sql = "SELECT id, name, surname, age, email, password, phone_number, avatar, account_type FROM users WHERE name ILIKE ?";
+        return jdbcTemplate.query(sql, userEntityMapper, "%" + name + "%");
     }
 }
