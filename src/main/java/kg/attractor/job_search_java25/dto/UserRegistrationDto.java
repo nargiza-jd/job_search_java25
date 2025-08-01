@@ -1,10 +1,6 @@
 package kg.attractor.job_search_java25.dto;
 
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
-import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.*;
 import lombok.Data;
 
 @Data
@@ -18,6 +14,7 @@ public class UserRegistrationDto {
     @Size(max = 50, message = "Surname must be at most 50 characters")
     private String surname;
 
+    @NotNull(message = "Age must not be null")
     @Min(value = 0, message = "Age must be positive")
     private Integer age;
 

@@ -2,66 +2,42 @@ package kg.attractor.job_search_java25.controller;
 
 import jakarta.validation.Valid;
 import kg.attractor.job_search_java25.dto.ResumeCreateDto;
-import kg.attractor.job_search_java25.dto.ResumeUpdateDto;
-import kg.attractor.job_search_java25.model.Resume;
 import kg.attractor.job_search_java25.service.ResumeService;
-import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.util.List;
-
-@RestController
-@RequestMapping("/api/resumes")
-@RequiredArgsConstructor
+@Controller
+@RequestMapping("/resumes")
 public class ResumeController {
 
     private final ResumeService resumeService;
 
-    @GetMapping
-    public ResponseEntity<List<Resume>> getAll() {
-        return ResponseEntity.ok(resumeService.getAllResumes());
+    public ResumeController(ResumeService resumeService) {
+        this.resumeService = resumeService;
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<Resume> getById(@PathVariable int id) {
-        return resumeService.getResumeById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    @GetMapping("/resumes/add")
+    public String showAddResumeForm(Model model) {
+        model.addAttribute("resumeCreateDto", new ResumeCreateDto());
+        return "resume-create-form";
     }
 
-    @GetMapping("/category/{categoryId}")
-    public ResponseEntity<List<Resume>> getByCategory(@PathVariable int categoryId) {
-        return ResponseEntity.ok(resumeService.findByCategory(categoryId));
-    }
+    @PostMapping("/add")
+    public String addResume(@ModelAttribute("resumeDto") @Valid ResumeCreateDto resumeDto,
+                            BindingResult bindingResult,
+                            RedirectAttributes redirectAttributes) {
+        if (bindingResult.hasErrors()) {
+            return "resume-create-form";
+        }
+        resumeService.createResume(resumeDto);
 
-    @GetMapping("/author/{applicantId}")
-    public ResponseEntity<List<Resume>> getByApplicant(@PathVariable int applicantId) {
-        return ResponseEntity.ok(resumeService.getResumesByApplicantId(applicantId));
-    }
-
-    @GetMapping("/search")
-    public ResponseEntity<List<Resume>> searchByName(@RequestParam String name) {
-        return ResponseEntity.ok(resumeService.searchByName(name));
-    }
-
-    @PostMapping
-    public ResponseEntity<Resume> createResume(@RequestBody @Valid ResumeCreateDto dto) {
-        Resume created = resumeService.createResume(dto);
-        return new ResponseEntity<>(created, HttpStatus.CREATED);
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<Resume> updateResume(@PathVariable int id, @RequestBody @Valid ResumeUpdateDto dto) {
-        return resumeService.updateResume(id, dto)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteResume(@PathVariable int id) {
-        boolean deleted = resumeService.deleteResume(id);
-        return deleted ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
+        redirectAttributes.addFlashAttribute("successMessage", "Резюме успешно создано!");
+        return "redirect:/resumes";
     }
 }

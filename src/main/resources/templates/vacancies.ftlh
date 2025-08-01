@@ -2,29 +2,27 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Список вакансий</title>
-    <link rel="stylesheet" href="/css/style.css">
+    <title>All Vacancies</title>
 </head>
 <body>
-<h1>Доступные вакансии</h1>
+<h1>All Vacancies</h1>
 
-<#if vacancies?has_content > 0>
+<#if vacancies?? && vacancies?size > 0>
     <ul>
         <#list vacancies as vacancy>
             <li>
-                <h3>${vacancy.title!}</h3>
-                <p>Компания: ${vacancy.companyName!}</p>
-                <p>Категория: <#if vacancy.category??>${vacancy.category.name!}<#else>Не указана</#if></p>
-                <p>Описание: ${vacancy.description!}</p>
-                <p>Зарплата: ${vacancy.salary!}</p>
-                <a href="/vacancies/${vacancy.id!}">Подробнее</a>
+                <h3><a href="/vacancies/${vacancy.id}">${vacancy.title}</a></h3>
+                <p>Company: ${vacancy.company}</p>
+                <p>Location: ${vacancy.location}</p>
+                <p>Description: ${vacancy.description}</p>
+                <hr>
             </li>
         </#list>
     </ul>
 <#else>
-    <p>На данный момент вакансий нет.</p>
+    <p>No vacancies found.</p>
 </#if>
 
-<a href="/dashboard">Вернуться на панель управления</a>
+<p><a href="/">Go to Home Page</a></p>
 </body>
 </html>

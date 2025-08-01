@@ -2,32 +2,32 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Login</title>
+    <title>Вход</title>
+    <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
-<h1>Login Page</h1>
-<#if loginError??>
-    <p class="error">Invalid username or password!</p>
-</#if>
-<#if logoutMessage??>
-    <p class="message">You have been logged out.</p>
-</#if>
-<#if registrationSuccess??>
-    <p class="message">Registration successful! You can now log in.</p>
-</#if>
-<form action="/login" method="post">
-    <div>
-        <label for="username">Username:</label>
-        <input type="text" id="username" name="username"/>
-    </div>
-    <div>
-        <label for="password">Password:</label>
-        <input type="password" id="password" name="password"/>
-    </div>
-    <div>
-        <input type="submit" value="Log In"/>
-    </div>
-</form>
-<p>New user? <a href="/register">Register here</a></p>
+
+<div class="container">
+    <h1>Вход</h1>
+
+    <#if errorMessage??>
+        <p class="error">${errorMessage}</p>
+    </#if>
+
+    <form action="/login" method="post">
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="username" required>
+        <br>
+
+        <label for="password">Пароль:</label>
+        <input type="password" id="password" name="password" required>
+        <br>
+
+        <button type="submit">Войти</button>
+        <input type="hidden" name="_csrf" value="${_csrf.token}">
+    </form>
+    <br>
+    <p>Нет аккаунта? <a href="/register">Зарегистрироваться</a></p>
+</div>
 </body>
 </html>
